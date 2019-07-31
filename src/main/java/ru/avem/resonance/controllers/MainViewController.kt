@@ -297,17 +297,14 @@ class MainViewController : Statable {
         time.maxWidth = 72.0
         time.setOnAction {
             handleTestItemGenerate()
-            logger.debug("i'm here")
         }
 
         val torque = TextField()
         torque.isEditable = true
         torque.prefWidth = 72.0
         torque.maxWidth = 72.0
-
         torque.setOnAction {
             handleTestItemGenerate()
-            logger.debug("i'm here")
         }
         return time to torque
     }
