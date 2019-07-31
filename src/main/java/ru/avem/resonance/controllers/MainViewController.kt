@@ -1,5 +1,6 @@
 package ru.avem.resonance.controllers
 
+import com.j256.ormlite.logger.LoggerFactory
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.fxml.FXML
@@ -35,7 +36,6 @@ import java.awt.Toolkit
 import java.io.File
 import java.io.IOException
 import java.util.*
-import java.util.logging.Logger
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
 import kotlin.collections.ArrayList
@@ -96,6 +96,10 @@ class MainViewController : Statable {
     lateinit var columnTableValue: TableColumn<ResultModel, String>
     @FXML
     lateinit var checkMenuItemTheme: CheckMenuItem
+    @FXML
+    lateinit var textFieldViu: TextField
+    @FXML
+    lateinit var textFieldViuDC: TextField
 
     //endregion
 
@@ -124,6 +128,7 @@ class MainViewController : Statable {
         const val HEIGHT_VBOX: Int = 57
         var isXXSelected = false
         var isElevatedRotation = false
+        private val logger = LoggerFactory.getLogger(MainViewController::class.java)
     }
 
     @FXML
@@ -149,7 +154,7 @@ class MainViewController : Statable {
         toIdleState()
     }
 
-    private fun toInitIdleState() { //TODO
+    private fun toInitIdleState() {
         menuBarProtocolSaveAs.isDisable = true
         tabResults.isDisable = true
         buttonProtocolCancel.isDisable = true
@@ -189,7 +194,6 @@ class MainViewController : Statable {
         tabPane.selectionModel.select(tabResults)
         val currentProtocol = mainModel.currentProtocol
         currentProtocol.millis = System.currentTimeMillis()
-        println("HIIIIIIIIIIIIIIIIIIIII" + currentProtocol.points)
         ProtocolRepository.insertProtocol(currentProtocol)
         Toast.makeText("Результаты проведенных испытаний сохранены").show(Toast.ToastType.INFORMATION)
         currentState = resultState
@@ -219,7 +223,6 @@ class MainViewController : Statable {
             buttonAdd.isDisable = false
             buttonRemove.isDisable = false
         } else {
-            loadDiagram.data.clear()
             buttonTestItemGenerate.isDisable = true
             scrollPaneTimeTorque.isDisable = true
             buttonAdd.isDisable = true
@@ -245,13 +248,12 @@ class MainViewController : Statable {
                 times.add(it.first.text.toDouble())
                 torques.add(it.second.text.toDouble())
             } else {
-                Toast.makeText("Проверьте правильность введенных продолжительности и моментов").show(Toast.ToastType.WARNING)
+                Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
             }
         }
         if (currentTestItem != null) {
             currentTestItem!!.times = times
-            currentTestItem!!.torques = torques
-            println("currentTestItem")
+            currentTestItem!!.voltageResonance = torques
             TestItemRepository.updateTestItem(currentTestItem)
         }
     }
@@ -293,11 +295,20 @@ class MainViewController : Statable {
         time.isEditable = true
         time.prefWidth = 72.0
         time.maxWidth = 72.0
+        time.setOnAction {
+            handleTestItemGenerate()
+            logger.debug("i'm here")
+        }
 
         val torque = TextField()
         torque.isEditable = true
         torque.prefWidth = 72.0
         torque.maxWidth = 72.0
+
+        torque.setOnAction {
+            handleTestItemGenerate()
+            logger.debug("i'm here")
+        }
         return time to torque
     }
 
@@ -313,16 +324,18 @@ class MainViewController : Statable {
                 loadDiagram.data.clear()
                 loadDiagram.data.addAll(seriesForLoadDiagram)
             } else {
-                Logger.getAnonymousLogger().warning("currentTestItem = null$currentTestItem")
+//                Logger.getAnonymousLogger().warning("currentTestItem = null$currentTestItem")
             }
         }
+        textFieldViu.text = comboBoxTestItem.selectionModel.selectedItem.viu.toString()
+        textFieldViuDC.text = comboBoxTestItem.selectionModel.selectedItem.viuDC.toString()
     }
 
     private fun fillPairsOfLoadDiagram() {
         for (i in 0 until currentTestItem!!.times.size) {
             handleAddPair()
             lastPair.first.text = currentTestItem!!.times[i].toString()
-            lastPair.second.text = currentTestItem!!.torques[i].toString()
+            lastPair.second.text = currentTestItem!!.voltageResonance[i].toString()
         }
     }
 
@@ -331,12 +344,12 @@ class MainViewController : Statable {
 
         var desperateDot = 0.0
 
-        seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, currentTestItem!!.torques[0]))
+        seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageResonance[0]))
 
         for (i in 0 until currentTestItem!!.times.size) {
-            seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.times[i], currentTestItem!!.torques[i]))
+            seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.times[i], currentTestItem!!.voltageResonance[i]))
             if (i != currentTestItem!!.times.size - 1) {
-                seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.times[i], currentTestItem!!.torques[i + 1]))
+                seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.times[i], currentTestItem!!.voltageResonance[i + 1]))
             }
             desperateDot += currentTestItem!!.times[i]
         }
@@ -354,7 +367,7 @@ class MainViewController : Statable {
 
     private fun initializeComboBoxResult() {
         if (mainModel.currentProtocol != null) {
-            val currentProtocol = mainModel!!.currentProtocol
+            val currentProtocol = mainModel.currentProtocol
             resultData.clear()
             resultData.add(ResultModel("Напряжение A, Н•м", currentProtocol.e1VoltageA))
             resultData.add(ResultModel("Напряжение B, Н•м", currentProtocol.e1VoltageB))
@@ -453,7 +466,6 @@ class MainViewController : Statable {
             e.printStackTrace()
             Toast.makeText(String.format("Ошибка при сохранении протокола %s", file.name)).show(Toast.ToastType.ERROR)
         }
-
     }
 
     @FXML

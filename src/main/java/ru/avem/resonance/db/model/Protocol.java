@@ -52,13 +52,13 @@ public class Protocol {
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> times;
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
-    private ArrayList<Double> torques;
+    private ArrayList<Double> voltageResonance;
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> dots;
     @DatabaseField
-    private Double torque;
+    private Double viu;
     @DatabaseField
-    private Double power;
+    private Double viuDC;
     @DatabaseField
     private Double voltage;
     @DatabaseField
@@ -99,7 +99,7 @@ public class Protocol {
         // ORMLite and XML binder need a no-arg constructor
     }
 
-    public Protocol(String serialNumber,TestItem selectedTestItem, Account firstTester, Account secondTester, long millis) {
+    public Protocol(String serialNumber, TestItem selectedTestItem, Account firstTester, Account secondTester, long millis) {
         setObject(selectedTestItem);
         this.serialNumber = serialNumber;
         this.position1 = firstTester.getPosition();
@@ -131,25 +131,15 @@ public class Protocol {
     }
 
     public TestItem getObject() {
-        return new TestItem(type, times,
-                torques, dots, torque, power, voltage, averageCurrent, noLoadCurrent, rotation, kpd, temperature, direction);
+        return new TestItem(type, times, voltageResonance, viu, viuDC);
     }
 
     public void setObject(TestItem object) {
         type = object.getType();
         times = object.getTimes();
-        torques = object.getTorques();
-        dots = object.getDots();
-        torque = object.getTorque();
-        power = object.getPower();
-        voltage = object.getVoltage();
-        averageCurrent = object.getAverageCurrent();
-        noLoadCurrent = object.getNoLoadCurrent();
-        rotation = object.getRotation();
-        kpd = object.getKpd();
-        temperature = object.getTemperature();
-        direction = object.getDirection();
-
+        voltageResonance = object.getVoltageResonance();
+        viu = object.getViu();
+        viuDC = object.getViuDC();
     }
 
     public long getMillis() {
@@ -289,12 +279,12 @@ public class Protocol {
         this.times = times;
     }
 
-    public ArrayList<Double> getTorques() {
-        return torques;
+    public ArrayList<Double> getVoltageResonance() {
+        return voltageResonance;
     }
 
-    public void setTorques(ArrayList<Double> torques) {
-        this.torques = torques;
+    public void setVoltageResonance(ArrayList<Double> voltageResonance) {
+        this.voltageResonance = voltageResonance;
     }
 
     public ArrayList<Double> getDots() {
@@ -305,20 +295,20 @@ public class Protocol {
         this.dots = dots;
     }
 
-    public Double getTorque() {
-        return torque;
+    public Double getViu() {
+        return viu;
     }
 
-    public void setTorque(Double torque) {
-        this.torque = torque;
+    public void setViu(Double viu) {
+        this.viu = viu;
     }
 
-    public Double getPower() {
-        return power;
+    public Double getViuDC() {
+        return viuDC;
     }
 
-    public void setPower(Double power) {
-        this.power = power;
+    public void setViuDC(Double viuDC) {
+        this.viuDC = viuDC;
     }
 
     public Double getVoltage() {

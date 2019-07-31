@@ -41,9 +41,9 @@ class Main : Application(), Exitappable {
         PRIMARY_STAGE = primaryStage
 
 //        if (BuildConfig.DEBUG) {
-//        showMainView()
+        showMainView()
 //        } else {
-            showLoginView()
+//            showLoginView()
 //        }
 
         PRIMARY_STAGE.initStyle(StageStyle.TRANSPARENT)

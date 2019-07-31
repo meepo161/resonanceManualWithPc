@@ -25,12 +25,9 @@ public abstract class DataBaseRepository {
 
             ArrayList<Double> times = new ArrayList<>();
             times.add(0, 1.0);
-            ArrayList<Double> torques = new ArrayList<>();
-            torques.add(0, 1.0);
-            ArrayList<Double> dots = new ArrayList<>();
-            dots.add(0, 0.9);
-            TestItem testItem1 = new TestItem("Удалить обязательно", times, torques, dots, 1.0, 1.0, 1.0,
-                    1.0, 1.0, 1.0, 1.0, 1.0, "right");
+            ArrayList<Double> voltageResonance = new ArrayList<>();
+            voltageResonance.add(0, 1.0);
+            TestItem testItem1 = new TestItem("Двигатель", times, voltageResonance, 10.0, 20.0);
             TestItemRepository.insertTestItem(testItem1);
 
             ProtocolRepository.createTable();

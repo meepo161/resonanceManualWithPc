@@ -109,10 +109,10 @@ object Logging {
                                     cell.setCellValue(protocol.type)
                                 }
                                 "$102$" -> {
-                                    cell.setCellValue(protocol.torque)
+                                    cell.setCellValue(protocol.viu)
                                 }
                                 "$103$" -> {
-                                    cell.setCellValue(protocol.power)
+                                    cell.setCellValue(protocol.viuDC)
                                 }
                                 "$104$" -> {
                                     cell.setCellValue(protocol.voltage)

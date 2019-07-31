@@ -3,7 +3,6 @@ package ru.avem.resonance.controllers
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.fxml.FXML
-import javafx.scene.control.CheckBox
 import javafx.scene.control.ComboBox
 import javafx.scene.control.TextField
 import javafx.scene.control.TextInputDialog
@@ -18,31 +17,15 @@ class TestItemEditorController {
 
     //region FXML
     @FXML
-    lateinit var tFtype: TextField
+    lateinit var tFType: TextField
     @FXML
-    lateinit var tFTorque: TextField
+    lateinit var tFViu: TextField
     @FXML
-    lateinit var tFPower: TextField
-    @FXML
-    lateinit var tFVoltage: TextField
-    @FXML
-    lateinit var tFAverageCurrent: TextField
-    @FXML
-    lateinit var tFNoLoadCurrent: TextField
-    @FXML
-    lateinit var tFRotation: TextField
-    @FXML
-    lateinit var tFKPD: TextField
-    @FXML
-    lateinit var tFTemperature: TextField
+    lateinit var tFViuDC: TextField
     @FXML
     lateinit var comboBoxTestItem: ComboBox<TestItem>
     @FXML
     lateinit var root: AnchorPane
-    @FXML
-    lateinit var chBRotationLeft: CheckBox
-    @FXML
-    lateinit var chBRotationRight: CheckBox
     //endregion
 
     private var mainModel: MainModel? = null
@@ -72,21 +55,9 @@ class TestItemEditorController {
             comboBoxTestItem.items.setAll(testItems)
             comboBoxTestItem.selectionModel.selectFirst()
             val currentTestItem = TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.toString())
-            tFtype.text = currentTestItem.type
-            tFTorque.text = currentTestItem.torque.toString()
-            tFPower.text = currentTestItem.power.toString()
-            tFVoltage.text = currentTestItem.voltage.toString()
-            tFAverageCurrent.text = currentTestItem.averageCurrent.toString()
-            tFNoLoadCurrent.text = currentTestItem.noLoadCurrent.toString()
-            tFRotation.text = currentTestItem.rotation.toString()
-            tFKPD.text = currentTestItem.kpd.toString()
-            tFTemperature.text = currentTestItem.temperature.toString()
-            direction = currentTestItem.direction
-            if (direction == "right") {
-                handleRotationRight()
-            } else if (direction == "left") {
-                handleRotationLeft()
-            }
+            tFType.text = currentTestItem.type
+            tFViu.text = currentTestItem.viu.toString()
+            tFViuDC.text = currentTestItem.viuDC.toString()
         }
     }
 
@@ -96,77 +67,33 @@ class TestItemEditorController {
         if (selectedItem != null) {
             clearAllTF()
             val currentTestItem = TestItemRepository.getTestItem(selectedItem.toString())
-            tFtype.text = currentTestItem.type
-            if (currentTestItem.torque.toString().isNotEmpty()) {
-                tFTorque.text = currentTestItem.torque.toString()
+            tFType.text = currentTestItem.type
+            if (currentTestItem.viu.toString().isNotEmpty()) {
+                tFViu.text = currentTestItem.viu.toString()
             }
-            if (currentTestItem.power.toString().isNotEmpty()) {
-                tFPower.text = currentTestItem.power.toString()
-            }
-            if (currentTestItem.voltage.toString().isNotEmpty()) {
-                tFVoltage.text = currentTestItem.voltage.toString()
-            }
-            if (currentTestItem.averageCurrent.toString().isNotEmpty()) {
-                tFAverageCurrent.text = currentTestItem.averageCurrent.toString()
-            }
-            if (currentTestItem.noLoadCurrent.toString().isNotEmpty()) {
-                tFNoLoadCurrent.text = currentTestItem.noLoadCurrent.toString()
-            }
-            if (currentTestItem.rotation.toString().isNotEmpty()) {
-                tFRotation.text = currentTestItem.rotation.toString()
-            }
-            if (currentTestItem.kpd.toString().isNotEmpty()) {
-                tFKPD.text = currentTestItem.kpd.toString()
-            }
-            if (currentTestItem.temperature.toString().isNotEmpty()) {
-                tFTemperature.text = currentTestItem.temperature.toString()
-            }
-            direction = currentTestItem.direction
-            if (direction == "right") {
-                handleRotationRight()
-            } else if (direction == "left") {
-                handleRotationLeft()
+            if (currentTestItem.viuDC.toString().isNotEmpty()) {
+                tFViuDC.text = currentTestItem.viuDC.toString()
             }
         }
     }
 
     @FXML
     fun handleSave() {
-        if (tFTorque.text.toDoubleOrNull() == null) {
-            Toast.makeText("Неверный формат записи номинального момента. Используйте вместо запятых - точки").show(Toast.ToastType.ERROR)
-        } else if (tFRotation.text.toDoubleOrNull() == null) {
-            Toast.makeText("Неверный формат записи частоты вращения. Используйте вместо запятых - точки").show(Toast.ToastType.ERROR)
+        val selectedItem = comboBoxTestItem.selectionModel.selectedItem
+        if (selectedItem != null) {
+            val currentTestItem = TestItemRepository.getTestItem(selectedItem.toString())
+            currentTestItem.type = tFType.text
+            currentTestItem.viu = tFViu.text.toDouble()
+            currentTestItem.viuDC = tFViuDC.text.toDouble()
+            TestItemRepository.updateTestItem(currentTestItem)
+            initData()
         } else {
-            val selectedItem = comboBoxTestItem.selectionModel.selectedItem
-            if (selectedItem != null) {
-                val currentTestItem = TestItemRepository.getTestItem(selectedItem.toString())
-                currentTestItem.type = tFtype.text
-                currentTestItem.torque = tFTorque.text.toDouble()
-                currentTestItem.power = tFPower.text.toDouble()
-                currentTestItem.voltage = tFVoltage.text.toDouble()
-                currentTestItem.averageCurrent = tFAverageCurrent.text.toDouble()
-                currentTestItem.noLoadCurrent = tFNoLoadCurrent.text.toDouble()
-                currentTestItem.rotation = tFRotation.text.toDouble()
-                currentTestItem.kpd = tFKPD.text.toDouble()
-                currentTestItem.temperature = tFTemperature.text.toDouble()
-                currentTestItem.direction = direction
-                TestItemRepository.updateTestItem(currentTestItem)
-                initData()
-            } else {
-                val currentTestItem = TestItem()
-                currentTestItem.type = tFtype.text
-                currentTestItem.torque = tFTorque.text.toDouble()
-                currentTestItem.power = tFPower.text.toDouble()
-                currentTestItem.voltage = tFVoltage.text.toDouble()
-                currentTestItem.averageCurrent = tFAverageCurrent.text.toDouble()
-                currentTestItem.noLoadCurrent = tFNoLoadCurrent.text.toDouble()
-                currentTestItem.rotation = tFRotation.text.toDouble()
-                currentTestItem.kpd = tFKPD.text.toDouble()
-                currentTestItem.temperature = tFTemperature.text.toDouble()
-                currentTestItem.direction = direction
-                TestItemRepository.insertTestItem(currentTestItem)
-                initData()
-            }
+            val currentTestItem = TestItem()
+            currentTestItem.type = tFType.text
+            currentTestItem.viu = tFViu.text.toDouble()
+            currentTestItem.viuDC = tFViuDC.text.toDouble()
+            TestItemRepository.insertTestItem(currentTestItem)
+            initData()
         }
     }
 
@@ -184,28 +111,9 @@ class TestItemEditorController {
     }
 
     private fun clearAllTF() {
-        tFtype.text = ""
-        tFtype.text = ""
-        tFTorque.text = ""
-        tFPower.text = ""
-        tFVoltage.text = ""
-        tFAverageCurrent.text = ""
-        tFNoLoadCurrent.text = ""
-        tFRotation.text = ""
-        tFKPD.text = ""
-        tFTemperature.text = ""
-    }
-
-    fun handleRotationLeft() {
-        chBRotationLeft.isSelected = true
-        chBRotationRight.isSelected = false
-        direction = "left"
-    }
-
-    fun handleRotationRight() {
-        chBRotationLeft.isSelected = false
-        chBRotationRight.isSelected = true
-        direction = "right"
+        tFType.text = ""
+        tFViu.text = ""
+        tFViuDC.text = ""
     }
 
     @FXML
@@ -220,9 +128,5 @@ class TestItemEditorController {
             TestItemRepository.insertTestItem(testItem)
             comboBoxTestItem.items.add(testItem)
         }
-    }
-
-    companion object {
-        var direction = ""
     }
 }
