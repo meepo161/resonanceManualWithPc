@@ -19,10 +19,6 @@ class TestItemEditorController {
     @FXML
     lateinit var tFType: TextField
     @FXML
-    lateinit var tFViu: TextField
-    @FXML
-    lateinit var tFViuDC: TextField
-    @FXML
     lateinit var comboBoxTestItem: ComboBox<TestItem>
     @FXML
     lateinit var root: AnchorPane
@@ -56,8 +52,6 @@ class TestItemEditorController {
             comboBoxTestItem.selectionModel.selectFirst()
             val currentTestItem = TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.toString())
             tFType.text = currentTestItem.type
-            tFViu.text = currentTestItem.viu.toString()
-            tFViuDC.text = currentTestItem.viuDC.toString()
         }
     }
 
@@ -68,12 +62,6 @@ class TestItemEditorController {
             clearAllTF()
             val currentTestItem = TestItemRepository.getTestItem(selectedItem.toString())
             tFType.text = currentTestItem.type
-            if (currentTestItem.viu.toString().isNotEmpty()) {
-                tFViu.text = currentTestItem.viu.toString()
-            }
-            if (currentTestItem.viuDC.toString().isNotEmpty()) {
-                tFViuDC.text = currentTestItem.viuDC.toString()
-            }
         }
     }
 
@@ -83,15 +71,11 @@ class TestItemEditorController {
         if (selectedItem != null) {
             val currentTestItem = TestItemRepository.getTestItem(selectedItem.toString())
             currentTestItem.type = tFType.text
-            currentTestItem.viu = tFViu.text.toDouble()
-            currentTestItem.viuDC = tFViuDC.text.toDouble()
             TestItemRepository.updateTestItem(currentTestItem)
             initData()
         } else {
             val currentTestItem = TestItem()
             currentTestItem.type = tFType.text
-            currentTestItem.viu = tFViu.text.toDouble()
-            currentTestItem.viuDC = tFViuDC.text.toDouble()
             TestItemRepository.insertTestItem(currentTestItem)
             initData()
         }
@@ -112,8 +96,6 @@ class TestItemEditorController {
 
     private fun clearAllTF() {
         tFType.text = ""
-        tFViu.text = ""
-        tFViuDC.text = ""
     }
 
     @FXML

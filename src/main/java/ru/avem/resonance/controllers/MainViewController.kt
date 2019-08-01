@@ -106,8 +106,15 @@ class MainViewController : Statable {
     private var protocolFileChooser: FileChooser? = null
     private var DBFileChooser: FileChooser? = null
 
-    private lateinit var lastPair: Pair<TextField, TextField>
-    private val stackPairs: Stack<Pair<TextField, TextField>> = Stack()
+    private lateinit var lastPairResonance: Pair<TextField, TextField>
+    private val stackPairsResonance: Stack<Pair<TextField, TextField>> = Stack()
+
+    private lateinit var lastPairViu: Pair<TextField, TextField>
+    private val stackPairsViu: Stack<Pair<TextField, TextField>> = Stack()
+
+    private lateinit var lastPairViuDC: Pair<TextField, TextField>
+    private val stackPairsViuDC: Stack<Pair<TextField, TextField>> = Stack()
+
 
     private var allTestItems = TestItemRepository.getAllTestItems()
     private var currentTestItem: TestItem? = null
@@ -197,6 +204,7 @@ class MainViewController : Statable {
     }
 
     private fun initData() {
+        checkBoxResonance.isSelected = true
         allTestItems = TestItemRepository.getAllTestItems()
         comboBoxTestItem.items.clear()
         comboBoxTestItem.selectionModel.clearSelection()
@@ -222,6 +230,7 @@ class MainViewController : Statable {
         checkBoxResonance.isSelected = false
         checkBoxViu.isSelected = true
         checkBoxViuDC.isSelected = false
+        stackPairsResonance.clear()
     }
 
     @FXML
@@ -241,7 +250,7 @@ class MainViewController : Statable {
     private fun applyTimesAndTorques() {
         val times: ArrayList<Double> = ArrayList()
         val torques: ArrayList<Double> = ArrayList()
-        stackPairs.forEach {
+        stackPairsResonance.forEach {
             if (!it.first.text.isNullOrEmpty() &&
                     !it.second.text.isNullOrEmpty() &&
                     it.first.text.toDoubleOrNull() != null &&
@@ -253,7 +262,7 @@ class MainViewController : Statable {
             }
         }
         if (currentTestItem != null) {
-            currentTestItem!!.times = times
+            currentTestItem!!.timesResonance = times
             currentTestItem!!.voltageResonance = torques
             TestItemRepository.updateTestItem(currentTestItem)
         }
@@ -266,28 +275,32 @@ class MainViewController : Statable {
 
     @FXML
     fun handleAddPair() {
-        addPair()
+        if (checkBoxResonance.isSelected) {
+            addPairResonance()
+        }
         buttonProtocolNext.isDisable = true
     }
 
-    private fun addPair() {
-        lastPair = newTextFieldsForChart()
-        stackPairs.push(lastPair)
-        vBoxTime.children.add(lastPair.first)
-        vBoxTorque.children.add(lastPair.second)
+    private fun addPairResonance() {
+        lastPairResonance = newTextFieldsForChart()
+        stackPairsResonance.push(lastPairResonance)
+        vBoxTime.children.add(lastPairResonance.first)
+        vBoxTorque.children.add(lastPairResonance.second)
         anchorPaneTimeTorque.prefHeight += HEIGHT_VBOX
     }
 
     @FXML
     fun handleRemovePair() {
-        removePair()
+        if (checkBoxResonance.isSelected) {
+            removePairResonance()
+        }
         buttonProtocolNext.isDisable = true
     }
 
-    private fun removePair() {
-        lastPair = stackPairs.pop()
-        vBoxTime.children.remove(lastPair.first)
-        vBoxTorque.children.remove(lastPair.second)
+    private fun removePairResonance() {
+        lastPairResonance = stackPairsResonance.pop()
+        vBoxTime.children.remove(lastPairResonance.first)
+        vBoxTorque.children.remove(lastPairResonance.second)
         anchorPaneTimeTorque.prefHeight -= HEIGHT_VBOX
     }
 
@@ -328,10 +341,10 @@ class MainViewController : Statable {
     }
 
     private fun fillPairsOfLoadDiagram() {
-        for (i in 0 until currentTestItem!!.times.size) {
+        for (i in 0 until currentTestItem!!.timesResonance.size) {
             handleAddPair()
-            lastPair.first.text = currentTestItem!!.times[i].toString()
-            lastPair.second.text = currentTestItem!!.voltageResonance[i].toString()
+            lastPairResonance.first.text = currentTestItem!!.timesResonance[i].toString()
+            lastPairResonance.second.text = currentTestItem!!.voltageResonance[i].toString()
         }
     }
 
@@ -342,12 +355,12 @@ class MainViewController : Statable {
 
         seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageResonance[0]))
 
-        for (i in 0 until currentTestItem!!.times.size) {
-            seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.times[i], currentTestItem!!.voltageResonance[i]))
-            if (i != currentTestItem!!.times.size - 1) {
-                seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.times[i], currentTestItem!!.voltageResonance[i + 1]))
+        for (i in 0 until currentTestItem!!.timesResonance.size) {
+            seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i]))
+            if (i != currentTestItem!!.timesResonance.size - 1) {
+                seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i + 1]))
             }
-            desperateDot += currentTestItem!!.times[i]
+            desperateDot += currentTestItem!!.timesResonance[i]
         }
 
         seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, 0))
@@ -356,8 +369,8 @@ class MainViewController : Statable {
     }
 
     private fun removeData() {
-        for (i in 0 until stackPairs.size) {
-            removePair()
+        for (i in 0 until stackPairsResonance.size) {
+            removePairResonance()
         }
     }
 

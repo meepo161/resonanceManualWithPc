@@ -27,7 +27,7 @@ public abstract class DataBaseRepository {
             times.add(0, 1.0);
             ArrayList<Double> voltageResonance = new ArrayList<>();
             voltageResonance.add(0, 1.0);
-            TestItem testItem1 = new TestItem("Двигатель", times, voltageResonance, 10.0, 20.0);
+            TestItem testItem1 = new TestItem("Двигатель", times, voltageResonance);
             TestItemRepository.insertTestItem(testItem1);
 
             ProtocolRepository.createTable();

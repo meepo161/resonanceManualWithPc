@@ -17,15 +17,10 @@ public class TestItem {
     private String type;
 
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
-    private ArrayList<Double> times = new ArrayList<>();
+    private ArrayList<Double> timesResonance = new ArrayList<>();
 
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> voltageResonance = new ArrayList<>();
-
-    @DatabaseField
-    private Double viu;
-    @DatabaseField
-    private Double viuDC;
 
     public TestItem() {
         // ORMLite needs a no-arg constructor
@@ -35,12 +30,10 @@ public class TestItem {
         this.type = type;
     }
 
-    public TestItem(String type, ArrayList<Double> times, ArrayList<Double> voltageResonance, Double viu, Double viuDC) {
+    public TestItem(String type, ArrayList<Double> timesResonance, ArrayList<Double> voltageResonance) {
         this.type = type;
-        this.times = times;
+        this.timesResonance = timesResonance;
         this.voltageResonance = voltageResonance;
-        this.viu = viu;
-        this.viuDC = viuDC;
     }
 
     public long getId() {
@@ -59,12 +52,12 @@ public class TestItem {
         this.type = type;
     }
 
-    public ArrayList<Double> getTimes() {
-        return times;
+    public ArrayList<Double> getTimesResonance() {
+        return timesResonance;
     }
 
-    public void setTimes(ArrayList<Double> times) {
-        this.times = times;
+    public void setTimesResonance(ArrayList<Double> timesResonance) {
+        this.timesResonance = timesResonance;
     }
 
     public ArrayList<Double> getVoltageResonance() {
@@ -73,22 +66,6 @@ public class TestItem {
 
     public void setVoltageResonance(ArrayList<Double> voltageResonance) {
         this.voltageResonance = voltageResonance;
-    }
-
-    public Double getViu() {
-        return viu;
-    }
-
-    public void setViu(Double viu) {
-        this.viu = viu;
-    }
-
-    public Double getViuDC() {
-        return viuDC;
-    }
-
-    public void setViuDC(Double viuDC) {
-        this.viuDC = viuDC;
     }
 
     @Override
@@ -103,14 +80,12 @@ public class TestItem {
         TestItem testItem = (TestItem) o;
         return id == testItem.id &&
                 Objects.equals(type, testItem.type) &&
-                Objects.equals(times, testItem.times) &&
-                Objects.equals(voltageResonance, testItem.voltageResonance) &&
-                Objects.equals(viu, testItem.viu) &&
-                Objects.equals(viuDC, testItem.viuDC);
+                Objects.equals(timesResonance, testItem.timesResonance) &&
+                Objects.equals(voltageResonance, testItem.voltageResonance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type, times, voltageResonance, viu, viuDC);
+        return Objects.hash(id, type, timesResonance, voltageResonance);
     }
 }

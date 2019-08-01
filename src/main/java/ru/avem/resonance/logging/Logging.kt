@@ -108,30 +108,6 @@ object Logging {
                                 "$101$" -> {
                                     cell.setCellValue(protocol.type)
                                 }
-                                "$102$" -> {
-                                    cell.setCellValue(protocol.viu)
-                                }
-                                "$103$" -> {
-                                    cell.setCellValue(protocol.viuDC)
-                                }
-                                "$104$" -> {
-                                    cell.setCellValue(protocol.voltage)
-                                }
-                                "$105$" -> {
-                                    cell.setCellValue(protocol.averageCurrent)
-                                }
-                                "$106$" -> {
-                                    cell.setCellValue(protocol.noLoadCurrent)
-                                }
-                                "$107$" -> {
-                                    cell.setCellValue(protocol.rotation)
-                                }
-                                "$108$" -> {
-                                    cell.setCellValue(protocol.kpd)
-                                }
-                                "$109$" -> {
-                                    cell.setCellValue(protocol.temperature)
-                                }
                                 "\$POS1$" -> cell.setCellValue(protocol.position1)
                                 "\$POS2$" -> cell.setCellValue(protocol.position2)
                                 "\$POS1NAME$" -> cell.setCellValue(String.format("/%s/", protocol.position1FullName))

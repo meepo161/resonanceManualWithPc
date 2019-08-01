@@ -50,29 +50,9 @@ public class Protocol {
     @DatabaseField
     private String type;
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
-    private ArrayList<Double> times;
+    private ArrayList<Double> timesResonance;
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> voltageResonance;
-    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
-    private ArrayList<Double> dots;
-    @DatabaseField
-    private Double viu;
-    @DatabaseField
-    private Double viuDC;
-    @DatabaseField
-    private Double voltage;
-    @DatabaseField
-    private Double averageCurrent;
-    @DatabaseField
-    private Double noLoadCurrent;
-    @DatabaseField
-    private Double rotation;
-    @DatabaseField
-    private Double kpd;
-    @DatabaseField
-    private Double temperature;
-    @DatabaseField
-    private String direction;
     @DatabaseField
     private String position1;
     @DatabaseField
@@ -131,15 +111,13 @@ public class Protocol {
     }
 
     public TestItem getObject() {
-        return new TestItem(type, times, voltageResonance, viu, viuDC);
+        return new TestItem(type, timesResonance, voltageResonance);
     }
 
     public void setObject(TestItem object) {
         type = object.getType();
-        times = object.getTimes();
+        timesResonance = object.getTimesResonance();
         voltageResonance = object.getVoltageResonance();
-        viu = object.getViu();
-        viuDC = object.getViuDC();
     }
 
     public long getMillis() {
@@ -271,12 +249,12 @@ public class Protocol {
         this.type = type;
     }
 
-    public ArrayList<Double> getTimes() {
-        return times;
+    public ArrayList<Double> getTimesResonance() {
+        return timesResonance;
     }
 
-    public void setTimes(ArrayList<Double> times) {
-        this.times = times;
+    public void setTimesResonance(ArrayList<Double> timesResonance) {
+        this.timesResonance = timesResonance;
     }
 
     public ArrayList<Double> getVoltageResonance() {
@@ -285,86 +263,6 @@ public class Protocol {
 
     public void setVoltageResonance(ArrayList<Double> voltageResonance) {
         this.voltageResonance = voltageResonance;
-    }
-
-    public ArrayList<Double> getDots() {
-        return dots;
-    }
-
-    public void setDots(ArrayList<Double> dots) {
-        this.dots = dots;
-    }
-
-    public Double getViu() {
-        return viu;
-    }
-
-    public void setViu(Double viu) {
-        this.viu = viu;
-    }
-
-    public Double getViuDC() {
-        return viuDC;
-    }
-
-    public void setViuDC(Double viuDC) {
-        this.viuDC = viuDC;
-    }
-
-    public Double getVoltage() {
-        return voltage;
-    }
-
-    public void setVoltage(Double voltage) {
-        this.voltage = voltage;
-    }
-
-    public Double getAverageCurrent() {
-        return averageCurrent;
-    }
-
-    public void setAverageCurrent(Double averageCurrent) {
-        this.averageCurrent = averageCurrent;
-    }
-
-    public Double getNoLoadCurrent() {
-        return noLoadCurrent;
-    }
-
-    public void setNoLoadCurrent(Double noLoadCurrent) {
-        this.noLoadCurrent = noLoadCurrent;
-    }
-
-    public Double getRotation() {
-        return rotation;
-    }
-
-    public void setRotation(Double rotation) {
-        this.rotation = rotation;
-    }
-
-    public Double getKpd() {
-        return kpd;
-    }
-
-    public void setKpd(Double kpd) {
-        this.kpd = kpd;
-    }
-
-    public Double getTemperature() {
-        return temperature;
-    }
-
-    public void setTemperature(Double temperature) {
-        this.temperature = temperature;
-    }
-
-    public String getDirection() {
-        return direction;
-    }
-
-    public void setDirection(String direction) {
-        this.direction = direction;
     }
 
     public String getPosition1() {

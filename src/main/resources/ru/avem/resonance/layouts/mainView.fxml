@@ -367,26 +367,6 @@
                                                         <Insets bottom="16.0" left="16.0" right="16.0" top="16.0"/>
                                                     </GridPane.margin>
                                                 </HBox>
-                                                <AnchorPane GridPane.columnIndex="1" GridPane.rowIndex="1">
-                                                    <children>
-                                                        <HBox alignment="CENTER" layoutY="-36.0" spacing="16.0"
-                                                              AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                                              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                            <children>
-                                                                <Button fx:id="buttonAdd" mnemonicParsing="false"
-                                                                        onAction="#handleAddPair" prefWidth="92.0"
-                                                                        text="Добавить"/>
-                                                                <Button fx:id="buttonRemove" mnemonicParsing="false"
-                                                                        onAction="#handleRemovePair" prefWidth="92.0"
-                                                                        text="Удалить"/>
-                                                            </children>
-                                                            <padding>
-                                                                <Insets bottom="16.0" left="16.0" right="16.0"
-                                                                        top="16.0"/>
-                                                            </padding>
-                                                        </HBox>
-                                                    </children>
-                                                </AnchorPane>
                                                 <AnchorPane GridPane.columnSpan="2" GridPane.rowIndex="1">
                                                     <children>
                                                         <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
@@ -423,6 +403,26 @@
                                                                 </HBox>
                                                             </children>
                                                         </VBox>
+                                                    </children>
+                                                </AnchorPane>
+                                                <AnchorPane GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                    <children>
+                                                        <HBox alignment="CENTER" layoutY="-36.0" spacing="16.0"
+                                                              AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                                              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                            <children>
+                                                                <Button fx:id="buttonAdd" mnemonicParsing="false"
+                                                                        onAction="#handleAddPair" prefWidth="92.0"
+                                                                        text="Добавить"/>
+                                                                <Button fx:id="buttonRemove" mnemonicParsing="false"
+                                                                        onAction="#handleRemovePair" prefWidth="92.0"
+                                                                        text="Удалить"/>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="16.0" left="16.0" right="16.0"
+                                                                        top="16.0"/>
+                                                            </padding>
+                                                        </HBox>
                                                     </children>
                                                 </AnchorPane>
                                             </children>
