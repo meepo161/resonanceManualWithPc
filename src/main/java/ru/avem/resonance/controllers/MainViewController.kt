@@ -69,9 +69,9 @@ class MainViewController : Statable {
     @FXML
     lateinit var checkBoxResonance: CheckBox
     @FXML
-    lateinit var checkBoxExperiment1: CheckBox
+    lateinit var checkBoxViu: CheckBox
     @FXML
-    lateinit var checkBoxExperiment2: CheckBox
+    lateinit var checkBoxViuDC: CheckBox
     @FXML
     lateinit var gridPaneTimeTorque: GridPane
     @FXML
@@ -96,10 +96,6 @@ class MainViewController : Statable {
     lateinit var columnTableValue: TableColumn<ResultModel, String>
     @FXML
     lateinit var checkMenuItemTheme: CheckMenuItem
-    @FXML
-    lateinit var textFieldViu: TextField
-    @FXML
-    lateinit var textFieldViuDC: TextField
 
     //endregion
 
@@ -216,18 +212,23 @@ class MainViewController : Statable {
 
     @FXML
     fun handleResonance() {
-        if (checkBoxResonance.isSelected) {
-            handleTestItemGenerate()
-            buttonTestItemGenerate.isDisable = false
-            scrollPaneTimeTorque.isDisable = false
-            buttonAdd.isDisable = false
-            buttonRemove.isDisable = false
-        } else {
-            buttonTestItemGenerate.isDisable = true
-            scrollPaneTimeTorque.isDisable = true
-            buttonAdd.isDisable = true
-            buttonRemove.isDisable = true
-        }
+        checkBoxResonance.isSelected = true
+        checkBoxViu.isSelected = false
+        checkBoxViuDC.isSelected = false
+    }
+
+    @FXML
+    fun handleViu() {
+        checkBoxResonance.isSelected = false
+        checkBoxViu.isSelected = true
+        checkBoxViuDC.isSelected = false
+    }
+
+    @FXML
+    fun handleViuDC() {
+        checkBoxResonance.isSelected = false
+        checkBoxViu.isSelected = false
+        checkBoxViuDC.isSelected = true
     }
 
     @FXML
@@ -315,7 +316,7 @@ class MainViewController : Statable {
             removeData()
             loadDiagram.data.clear()
             currentTestItem = TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.toString())
-            if (currentTestItem != null) {
+            if (currentTestItem != null && currentTestItem!!.voltageResonance.isNotEmpty()) {
                 fillPairsOfLoadDiagram()
                 val seriesForLoadDiagram = createLoadDiagram()
                 loadDiagram.data.clear()
@@ -324,8 +325,6 @@ class MainViewController : Statable {
 //                Logger.getAnonymousLogger().warning("currentTestItem = null$currentTestItem")
             }
         }
-        textFieldViu.text = comboBoxTestItem.selectionModel.selectedItem.viu.toString()
-        textFieldViuDC.text = comboBoxTestItem.selectionModel.selectedItem.viuDC.toString()
     }
 
     private fun fillPairsOfLoadDiagram() {
@@ -609,15 +608,11 @@ class MainViewController : Statable {
         handleTestItemGenerate()
         if (!comboBoxTestItem.selectionModel.isEmpty) {
             mainModel.createNewProtocol(textFieldSerialNumber.text, TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.type))
-            isXXSelected = checkBoxExperiment2.isSelected
-            isElevatedRotation = checkBoxExperiment1.isSelected
             startExperiment()
             toResultState()
         } else {
             Toast.makeText("Выберите объект испытания").show(Toast.ToastType.INFORMATION)
         }
-        isXXSelected = checkBoxExperiment2.isSelected
-        isElevatedRotation = checkBoxExperiment1.isSelected
 
     }
 
@@ -721,6 +716,7 @@ class MainViewController : Statable {
         alert.contentText = "Дата: 07.05.2019"
         alert.showAndWait()
     }
+
 
 }
 
