@@ -108,7 +108,7 @@ class MainViewController : Statable {
 
 
     private var allTestItems = TestItemRepository.getAllTestItems()
-    private var currentTestItem: TestItem? = null
+    var currentTestItem: TestItem? = null
     private val resultData = FXCollections.observableArrayList<ResultModel>()
 
     private val idleState = IdleState(this)
@@ -145,6 +145,7 @@ class MainViewController : Statable {
         checkMenuItemTheme.isSelected = false
         toIdleState()
     }
+
 
     private fun toInitIdleState() {
         menuBarProtocolSaveAs.isDisable = true
@@ -237,14 +238,11 @@ class MainViewController : Statable {
             }
             TestItemRepository.updateTestItem(currentTestItem)
         }
-
-        buttonProtocolNext.isDisable = false
     }
 
     @FXML
     fun handleAddPair() {
         addPair()
-        buttonProtocolNext.isDisable = true
     }
 
     private fun addPair() {
@@ -258,7 +256,6 @@ class MainViewController : Statable {
     @FXML
     fun handleRemovePair() {
         removePair()
-        buttonProtocolNext.isDisable = true
         saveTestItemPoints()
         createLoadDiagram()
     }
@@ -329,9 +326,7 @@ class MainViewController : Statable {
 
     private fun createLoadDiagram() {
         loadDiagram.data.clear()
-
         val seriesTimesAndVoltage = XYChart.Series<Number, Number>()
-
         var desperateDot = 0.0
 
         when {
@@ -684,6 +679,57 @@ class MainViewController : Statable {
     }
 
     @FXML
+    fun handleAddTestItem() {
+        val dialog = TextInputDialog("Двигатель")
+        dialog.title = "Редактор типов двигателя"
+        dialog.headerText = "Добавить новый тип двигателя"
+        dialog.contentText = "Введите тип: "
+        val result = dialog.showAndWait()
+        if (result.isPresent) {
+            var name = result.get()
+            if (name.trim().isNotBlank()) {
+                name = checkName((comboBoxTestItem.items.map { it.type }).toMutableList(), name)
+                val testItem = TestItem(name)
+                TestItemRepository.insertTestItem(testItem)
+                comboBoxTestItem.items.add(testItem)
+                comboBoxTestItem.selectionModel.selectLast()
+            } else {
+                Toast.makeText("Введите корректное наименование типа").show(Toast.ToastType.INFORMATION)
+                handleAddTestItem()
+            }
+        }
+    }
+
+    private fun checkName(map: MutableList<String>, name: String, _i: Int = 1): String {
+        var i = _i
+        return if (map.contains(name)) {
+            map.removeAll { it == name }
+            val j = i - 1
+            checkName(map, "${name.removeSuffix("($j)")}($i)", ++i)
+        } else {
+            name
+        }
+    }
+
+    fun handleDeleteTestItem() {
+        if (currentTestItem != null) {
+            TestItemRepository.deleteTestItem(currentTestItem)
+            initDataForTestItem()
+        } else {
+            Toast.makeText("Выберите ОИ для удаления").show(Toast.ToastType.INFORMATION)
+        }
+    }
+
+    private fun initDataForTestItem() {
+        val allTestItems = TestItemRepository.getAllTestItems()
+        comboBoxTestItem.items.clear()
+        if (allTestItems.isNotEmpty()) {
+            comboBoxTestItem.items.setAll(allTestItems)
+            comboBoxTestItem.selectionModel.selectFirst()
+        }
+    }
+
+    @FXML
     fun handleAbout() {
         val alert = Alert(Alert.AlertType.INFORMATION)
         alert.title = "Версия ПО"
@@ -691,4 +737,5 @@ class MainViewController : Statable {
         alert.contentText = "Дата: 02.08.2019"
         alert.showAndWait()
     }
+
 }
