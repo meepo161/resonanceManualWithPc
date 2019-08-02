@@ -113,7 +113,6 @@ class ProtocolEditorController {
         val selectedIndex = tableProtocols.selectionModel.selectedIndex
         val protocol = tableProtocols.selectionModel.selectedItem
         if (selectedIndex >= 0) {
-//            val logging = Logging()
             openFile(Logging.getTempWorkbook(protocol))
         } else {
             val alert = Alert(Alert.AlertType.WARNING)
@@ -135,7 +134,6 @@ class ProtocolEditorController {
                     FileChooser.ExtensionFilter("AVEM Protocol (*.xlsx)", "*.xlsx"))
 
             val file = protocolFileChooser.showSaveDialog(root.scene.window)
-//            Logging.writeWorkbookToFile(tableProtocols.selectionModel.selectedItem, file)
             if (!Logging.writeWorkbookToFile(tableProtocols.selectionModel.selectedItem, file)) {
                 Toast.makeText("При попытке сохранения протокола произошла ошибка").show(Toast.ToastType.ERROR)
             } else {

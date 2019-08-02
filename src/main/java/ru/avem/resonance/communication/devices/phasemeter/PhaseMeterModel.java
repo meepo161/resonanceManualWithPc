@@ -13,7 +13,6 @@ public class PhaseMeterModel extends Observable {
     public static final int WINDING_GROUP0_PARAM = 6;
     public static final int WINDING_GROUP1_PARAM = 7;
     public static final int START_STOP_PARAM = 8;
-//    public static final int ID_SERIAL_NUMBER_PARAM = 9; useless, не работает
     private int deviceID;
     private boolean readResponding;
     private boolean writeResponding;

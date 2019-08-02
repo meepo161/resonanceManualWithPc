@@ -45,11 +45,11 @@ public class TestItemRepository extends DataBaseRepository {
         return testItem[0];
     }
 
-    public static TestItem getTestItem(String type) {
-        final TestItem[] testItem = {null};
-        sendAction((testItemDao) -> testItem[0] = testItemDao.queryForEq("type", type).get(0));
-        return testItem[0];
-    }
+//    public static TestItem getTestItem(String type) {
+//        final TestItem[] testItem = {null};
+//        sendAction((testItemDao) -> testItem[0] = testItemDao.queryForEq("type", type).get(0));
+//        return testItem[0];
+//    }
 
     @FunctionalInterface
     private interface Actionable {

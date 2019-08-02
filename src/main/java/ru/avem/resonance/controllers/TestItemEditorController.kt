@@ -1,7 +1,5 @@
 package ru.avem.resonance.controllers
 
-import javafx.collections.FXCollections
-import javafx.collections.ObservableList
 import javafx.fxml.FXML
 import javafx.scene.control.ComboBox
 import javafx.scene.control.TextField
@@ -10,22 +8,19 @@ import javafx.scene.layout.AnchorPane
 import ru.avem.resonance.Main
 import ru.avem.resonance.db.TestItemRepository
 import ru.avem.resonance.db.model.TestItem
-import ru.avem.resonance.model.MainModel
 import ru.avem.resonance.utils.Toast
 
 class TestItemEditorController {
-
     //region FXML
     @FXML
-    lateinit var tFType: TextField
+    lateinit var root: AnchorPane
     @FXML
     lateinit var comboBoxTestItem: ComboBox<TestItem>
     @FXML
-    lateinit var root: AnchorPane
+    lateinit var textFieldType: TextField
     //endregion
 
-    private var mainModel: MainModel? = null
-    private var testItems: ObservableList<TestItem>? = null
+    private fun getSelectedTestItem() = comboBoxTestItem.selectionModel.selectedItem
 
     @FXML
     private fun initialize() {
@@ -35,67 +30,62 @@ class TestItemEditorController {
             root.stylesheets[0] = Main::class.java.getResource("styles/main_css_black.css").toURI().toString()
         }
 
-        mainModel = MainModel.instance
         initData()
-        clearAllTF()
-        comboBoxTestItem.selectionModel.clearSelection()
     }
 
     private fun initData() {
-        if (TestItemRepository.getAllTestItems().isNotEmpty()) {
-            comboBoxTestItem.items.removeAll()
-            val allTestItems = TestItemRepository.getAllTestItems()
-            testItems = FXCollections.observableArrayList(allTestItems)
-            comboBoxTestItem.selectionModel.clearSelection()
-            comboBoxTestItem.items.clear()
-            comboBoxTestItem.items.setAll(testItems)
+        val allTestItems = TestItemRepository.getAllTestItems()
+
+        comboBoxTestItem.items.clear()
+        if (allTestItems.isNotEmpty()) {
+            comboBoxTestItem.items.setAll(allTestItems)
             comboBoxTestItem.selectionModel.selectFirst()
-            val currentTestItem = TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.toString())
-            tFType.text = currentTestItem.type
+            fillParameters()
+        } else {
+            clearParameters()
         }
+    }
+
+    private fun fillParameters() {
+        if (getSelectedTestItem() != null) {
+            textFieldType.text = getSelectedTestItem().type
+        }
+    }
+
+    private fun clearParameters() {
+        textFieldType.text = ""
+        comboBoxTestItem.selectionModel.clearSelection()
     }
 
     @FXML
     fun handleComboBoxTestItem() {
-        val selectedItem = comboBoxTestItem.selectionModel.selectedItem
-        if (selectedItem != null) {
-            clearAllTF()
-            val currentTestItem = TestItemRepository.getTestItem(selectedItem.toString())
-            tFType.text = currentTestItem.type
+        val selectedTestItem = getSelectedTestItem()
+        if (selectedTestItem != null) {
+            fillParameters()
         }
     }
 
     @FXML
     fun handleSave() {
-        val selectedItem = comboBoxTestItem.selectionModel.selectedItem
-        if (selectedItem != null) {
-            val currentTestItem = TestItemRepository.getTestItem(selectedItem.toString())
-            currentTestItem.type = tFType.text
-            TestItemRepository.updateTestItem(currentTestItem)
+        val selectedTestItem = getSelectedTestItem()
+        if (selectedTestItem != null) {
+            selectedTestItem.type = textFieldType.text
+            TestItemRepository.updateTestItem(selectedTestItem)
             initData()
         } else {
-            val currentTestItem = TestItem()
-            currentTestItem.type = tFType.text
-            TestItemRepository.insertTestItem(currentTestItem)
-            initData()
+            Toast.makeText("Выберите ОИ для сохранения").show(Toast.ToastType.INFORMATION)
         }
     }
 
     @FXML
     fun handleDelete() {
-        if (comboBoxTestItem.selectionModel.selectedItem != null) {
-            val currentTestItem = TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.toString())
-            TestItemRepository.deleteTestItem(currentTestItem)
-            comboBoxTestItem.items.setAll(TestItemRepository.getAllTestItems())
-            clearAllTF()
+        val selectedTestItem = getSelectedTestItem()
+        if (selectedTestItem != null) {
+            TestItemRepository.deleteTestItem(selectedTestItem)
             initData()
         } else {
-            Toast.makeText("Нечего удалять").show(Toast.ToastType.INFORMATION)
+            Toast.makeText("Выберите ОИ для удаления").show(Toast.ToastType.INFORMATION)
         }
-    }
-
-    private fun clearAllTF() {
-        tFType.text = ""
     }
 
     @FXML
@@ -106,9 +96,28 @@ class TestItemEditorController {
         dialog.contentText = "Введите тип: "
         val result = dialog.showAndWait()
         if (result.isPresent) {
-            val testItem = TestItem(result.get())
-            TestItemRepository.insertTestItem(testItem)
-            comboBoxTestItem.items.add(testItem)
+            var name = result.get()
+            if (name.trim().isNotBlank()) {
+                name = checkName((comboBoxTestItem.items.map { it.type }).toMutableList(), name)
+                val testItem = TestItem(name)
+                TestItemRepository.insertTestItem(testItem)
+                comboBoxTestItem.items.add(testItem)
+                comboBoxTestItem.selectionModel.selectLast()
+            } else {
+                Toast.makeText("Введите корректное наименование типа").show(Toast.ToastType.INFORMATION)
+                handleAddTestItem()
+            }
+        }
+    }
+
+    private fun checkName(map: MutableList<String>, name: String, _i: Int = 1): String {
+        var i = _i
+        return if (map.contains(name)) {
+            map.removeAll { it == name }
+            val j = i - 1
+            checkName(map, "${name.removeSuffix("($j)")}($i)", ++i)
+        } else {
+            name
         }
     }
 }

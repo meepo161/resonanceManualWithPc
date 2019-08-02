@@ -5,7 +5,6 @@ import ru.avem.resonance.db.model.Protocol
 import ru.avem.resonance.db.model.TestItem
 
 class MainModel private constructor() {
-
     private var firstTester = Account("ADMIN", "ADMIN", "ADMIN", "ADMIN", "ADMIN")
     private var secondTester = Account("ADMIN", "ADMIN", "ADMIN", "ADMIN", "ADMIN")
 

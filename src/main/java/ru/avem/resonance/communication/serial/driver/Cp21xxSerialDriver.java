@@ -113,13 +113,11 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                     (short) value,
                     (short) 0
             );
-//            irp.setData(new byte[1]);
             try {
                 mDevice.syncSubmit(irp);
             } catch (UsbException e) {
                 e.printStackTrace();
             }
-//            return irp.getData()[0];
             return 0;
         }
 
@@ -152,14 +150,12 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                 setConfigSingle(SILABSER_IFC_ENABLE_REQUEST_CODE, UART_ENABLE);
                 setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, MCR_ALL | CONTROL_WRITE_DTR | CONTROL_WRITE_RTS);
                 setConfigSingle(SILABSER_SET_BAUDDIV_REQUEST_CODE, BAUD_RATE_GEN_FREQ / DEFAULT_BAUD_RATE);
-                //            setParameters(DEFAULT_BAUD_RATE, DEFAULT_DATA_BITS, DEFAULT_STOP_BITS, DEFAULT_PARITY);
                 opened = true;
             } finally {
                 if (!opened) {
                     try {
                         close();
                     } catch (IOException e) {
-                        // Ignore IOExceptions during close()
                         e.printStackTrace();
                     }
                 }
@@ -199,13 +195,11 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                     numBytesRead = usbIrp.getActualLength();
                     System.arraycopy(mReadBuffer, 0, dest, 0, numBytesRead);
                 } catch (UsbException e) {
-//                    e.printStackTrace();
                     System.out.println("Pipe is already open");
                 } finally {
                     try {
                         inputPipe.close();
                     } catch (UsbException e) {
-//                        e.printStackTrace();
                         System.out.println("Pipe is still busy");
                     }
                 }

@@ -17,7 +17,6 @@ public interface DeviceController {
     int TRM_ID = 7;
     int MEGACS_ID = 8;
     int DELTACP2000_ID = 11;
-//    int FR_A800_OBJECT_ID = 11;
 
     void read(Object... args);
 

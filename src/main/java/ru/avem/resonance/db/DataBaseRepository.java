@@ -9,30 +9,34 @@ import java.util.ArrayList;
 
 public abstract class DataBaseRepository {
     public static String DATABASE_NAME = "resonanceDataBase.db";
-    protected static String DATABASE_URL = "jdbc:" + "sqlite:" + DATABASE_NAME;
+    static String DATABASE_URL = "jdbc:" + "sqlite:" + DATABASE_NAME;
 
     public static void init(boolean forceInit) {
         if (!new File(DATABASE_NAME).exists() || forceInit) {
             AccountRepository.createTable(Account.class);
-
             Account ivanov = new Account("ivanov", "1234", "Исполнитель-1", "148", "Иванов И. И.");
             AccountRepository.insertAccount(ivanov);
-
             Account petrov = new Account("petrov", "1234", "Исполнитель-2", "841", "Петров П. П.");
             AccountRepository.insertAccount(petrov);
 
             TestItemRepository.createTable();
-
-            ArrayList<Double> times = new ArrayList<>();
-            times.add(0, 1.0);
+            ArrayList<Double> timesResonance = new ArrayList<>();
+            timesResonance.add(0, 1.0);
             ArrayList<Double> voltageResonance = new ArrayList<>();
-            voltageResonance.add(0, 1.0);
-            TestItem testItem1 = new TestItem("Двигатель", times, voltageResonance);
-            TestItemRepository.insertTestItem(testItem1);
+            voltageResonance.add(0, 2.0);
+            ArrayList<Double> timesViu = new ArrayList<>();
+            timesViu.add(0, 3.0);
+            ArrayList<Double> voltageViu = new ArrayList<>();
+            voltageViu.add(0, 4.0);
+            ArrayList<Double> timesViuDC = new ArrayList<>();
+            timesViuDC.add(0, 5.0);
+            ArrayList<Double> voltageViuDC = new ArrayList<>();
+            voltageViuDC.add(0, 6.0);
+            TestItem testItem = new TestItem("Двигатель", timesResonance, voltageResonance, timesViu, voltageViu, timesViuDC, voltageViuDC);
+            TestItemRepository.insertTestItem(testItem);
 
             ProtocolRepository.createTable();
-
-            Protocol protocol = new Protocol("SN1", testItem1, ivanov, petrov, System.currentTimeMillis());
+            Protocol protocol = new Protocol("SN1", testItem, ivanov, petrov, System.currentTimeMillis());
             ProtocolRepository.insertProtocol(protocol);
         }
     }

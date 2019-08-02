@@ -32,7 +32,6 @@ import ru.avem.resonance.model.ResultModel
 import ru.avem.resonance.states.main.*
 import ru.avem.resonance.utils.Toast
 import ru.avem.resonance.utils.Utils
-import java.awt.Toolkit
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -41,15 +40,11 @@ import javax.xml.bind.Marshaller
 import kotlin.collections.ArrayList
 
 class MainViewController : Statable {
-
-
     //region FXML
     @FXML
     lateinit var buttonProtocolCancel: Button
     @FXML
     lateinit var buttonProtocolNext: Button
-    @FXML
-    lateinit var buttonTestItemGenerate: Button
     @FXML
     lateinit var buttonAdd: Button
     @FXML
@@ -66,18 +61,20 @@ class MainViewController : Statable {
     lateinit var tabProtocol: Tab
     @FXML
     lateinit var tabResults: Tab
+
     @FXML
-    lateinit var checkBoxResonance: CheckBox
+    lateinit var radioResonance: RadioButton
     @FXML
-    lateinit var checkBoxViu: CheckBox
+    lateinit var radioViu: RadioButton
     @FXML
-    lateinit var checkBoxViuDC: CheckBox
+    lateinit var radioViuDC: RadioButton
+
     @FXML
     lateinit var gridPaneTimeTorque: GridPane
     @FXML
     lateinit var vBoxTime: VBox
     @FXML
-    lateinit var vBoxTorque: VBox
+    lateinit var vBoxVoltage: VBox
     @FXML
     lateinit var anchorPaneTimeTorque: AnchorPane
     @FXML
@@ -106,14 +103,8 @@ class MainViewController : Statable {
     private var protocolFileChooser: FileChooser? = null
     private var DBFileChooser: FileChooser? = null
 
-    private lateinit var lastPairResonance: Pair<TextField, TextField>
-    private val stackPairsResonance: Stack<Pair<TextField, TextField>> = Stack()
-
-    private lateinit var lastPairViu: Pair<TextField, TextField>
-    private val stackPairsViu: Stack<Pair<TextField, TextField>> = Stack()
-
-    private lateinit var lastPairViuDC: Pair<TextField, TextField>
-    private val stackPairsViuDC: Stack<Pair<TextField, TextField>> = Stack()
+    private lateinit var lastPair: Pair<TextField, TextField>
+    private val stackPairs: Stack<Pair<TextField, TextField>> = Stack()
 
 
     private var allTestItems = TestItemRepository.getAllTestItems()
@@ -129,8 +120,6 @@ class MainViewController : Statable {
 
     companion object {
         const val HEIGHT_VBOX: Int = 57
-        var isXXSelected = false
-        var isElevatedRotation = false
         private val logger = LoggerFactory.getLogger(MainViewController::class.java)
     }
 
@@ -161,7 +150,6 @@ class MainViewController : Statable {
         menuBarProtocolSaveAs.isDisable = true
         tabResults.isDisable = true
         buttonProtocolCancel.isDisable = true
-        buttonProtocolNext.isDisable = true
     }
 
     override fun toIdleState() {
@@ -174,11 +162,10 @@ class MainViewController : Statable {
         tabPane.selectionModel.select(tabProtocol)
         mainModel.currentProtocol = Protocol()
         buttonProtocolCancel.isDisable = false
-        buttonProtocolNext.isDisable = true
         tabResults.isDisable = true
         currentState = idleState
         initData()
-        checkBoxResonance.isSelected = true
+        radioResonance.isSelected = true
     }
 
     override fun toWaitState() {
@@ -189,7 +176,6 @@ class MainViewController : Statable {
         menuBarProtocolSaveAs.isDisable = false
         currentState = waitState
         buttonProtocolCancel.isDisable = false
-        buttonProtocolNext.isDisable = false
     }
 
     override fun toResultState() {
@@ -204,7 +190,7 @@ class MainViewController : Statable {
     }
 
     private fun initData() {
-        checkBoxResonance.isSelected = true
+        radioResonance.isSelected = true
         allTestItems = TestItemRepository.getAllTestItems()
         comboBoxTestItem.items.clear()
         comboBoxTestItem.selectionModel.clearSelection()
@@ -214,93 +200,73 @@ class MainViewController : Statable {
         tableViewResults.items = resultData
         columnTableDimension.setCellValueFactory { cellData -> cellData.value.dimensionProperty() }
         columnTableValue.setCellValueFactory { cellData -> cellData.value.valueProperty() }
-        initializeComboBoxResult()
-        handleTestItemGenerate()
+        resultData.clear()
+        handleSelectTestItemExperiment()
     }
 
-    @FXML
-    fun handleResonance() {
-        checkBoxResonance.isSelected = true
-        checkBoxViu.isSelected = false
-        checkBoxViuDC.isSelected = false
-    }
-
-    @FXML
-    fun handleViu() {
-        checkBoxResonance.isSelected = false
-        checkBoxViu.isSelected = true
-        checkBoxViuDC.isSelected = false
-        stackPairsResonance.clear()
-    }
-
-    @FXML
-    fun handleViuDC() {
-        checkBoxResonance.isSelected = false
-        checkBoxViu.isSelected = false
-        checkBoxViuDC.isSelected = true
-    }
-
-    @FXML
-    fun handleTestItemGenerate() {
-        applyTimesAndTorques()
-        handleComboBoxTestItem()
-        buttonProtocolNext.isDisable = false
-    }
-
-    private fun applyTimesAndTorques() {
+    private fun saveTestItemPoints() {
         val times: ArrayList<Double> = ArrayList()
-        val torques: ArrayList<Double> = ArrayList()
-        stackPairsResonance.forEach {
+        val voltages: ArrayList<Double> = ArrayList()
+
+        stackPairs.forEach {
             if (!it.first.text.isNullOrEmpty() &&
                     !it.second.text.isNullOrEmpty() &&
                     it.first.text.toDoubleOrNull() != null &&
                     it.second.text.toDoubleOrNull() != null) {
                 times.add(it.first.text.toDouble())
-                torques.add(it.second.text.toDouble())
+                voltages.add(it.second.text.toDouble())
             } else {
                 Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
             }
         }
+
         if (currentTestItem != null) {
-            currentTestItem!!.timesResonance = times
-            currentTestItem!!.voltageResonance = torques
+            when {
+                radioResonance.isSelected -> {
+                    currentTestItem!!.timesResonance = times
+                    currentTestItem!!.voltageResonance = voltages
+                }
+                radioViu.isSelected -> {
+                    currentTestItem!!.timesViu = times
+                    currentTestItem!!.voltageViu = voltages
+                }
+                radioViuDC.isSelected -> {
+                    currentTestItem!!.timesViuDC = times
+                    currentTestItem!!.voltageViuDC = voltages
+                }
+            }
             TestItemRepository.updateTestItem(currentTestItem)
         }
-    }
 
-    @FXML
-    fun handleTestItemCancel() {
-
+        buttonProtocolNext.isDisable = false
     }
 
     @FXML
     fun handleAddPair() {
-        if (checkBoxResonance.isSelected) {
-            addPairResonance()
-        }
+        addPair()
         buttonProtocolNext.isDisable = true
     }
 
-    private fun addPairResonance() {
-        lastPairResonance = newTextFieldsForChart()
-        stackPairsResonance.push(lastPairResonance)
-        vBoxTime.children.add(lastPairResonance.first)
-        vBoxTorque.children.add(lastPairResonance.second)
+    private fun addPair() {
+        lastPair = newTextFieldsForChart()
+        stackPairs.push(lastPair)
+        vBoxTime.children.add(lastPair.first)
+        vBoxVoltage.children.add(lastPair.second)
         anchorPaneTimeTorque.prefHeight += HEIGHT_VBOX
     }
 
     @FXML
     fun handleRemovePair() {
-        if (checkBoxResonance.isSelected) {
-            removePairResonance()
-        }
+        removePair()
         buttonProtocolNext.isDisable = true
+        saveTestItemPoints()
+        createLoadDiagram()
     }
 
-    private fun removePairResonance() {
-        lastPairResonance = stackPairsResonance.pop()
-        vBoxTime.children.remove(lastPairResonance.first)
-        vBoxTorque.children.remove(lastPairResonance.second)
+    private fun removePair() {
+        lastPair = stackPairs.pop()
+        vBoxTime.children.remove(lastPair.first)
+        vBoxVoltage.children.remove(lastPair.second)
         anchorPaneTimeTorque.prefHeight -= HEIGHT_VBOX
     }
 
@@ -310,87 +276,112 @@ class MainViewController : Statable {
         time.prefWidth = 72.0
         time.maxWidth = 72.0
         time.setOnAction {
-            handleTestItemGenerate()
+            saveTestItemPoints()
+            createLoadDiagram()
         }
 
-        val torque = TextField()
-        torque.isEditable = true
-        torque.prefWidth = 72.0
-        torque.maxWidth = 72.0
-        torque.setOnAction {
-            handleTestItemGenerate()
+        val voltage = TextField()
+        voltage.isEditable = true
+        voltage.prefWidth = 72.0
+        voltage.maxWidth = 72.0
+        voltage.setOnAction {
+            saveTestItemPoints()
+            createLoadDiagram()
         }
-        return time to torque
+        return time to voltage
     }
 
     @FXML
-    fun handleComboBoxTestItem() {
-        if (TestItemRepository.getAllTestItems().isNotEmpty()) {
+    fun handleSelectTestItemExperiment() {
+        currentTestItem = comboBoxTestItem.selectionModel.selectedItem
+        if (currentTestItem != null) {
             removeData()
-            loadDiagram.data.clear()
-            currentTestItem = TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.toString())
-            if (currentTestItem != null && currentTestItem!!.voltageResonance.isNotEmpty()) {
-                fillPairsOfLoadDiagram()
-                val seriesForLoadDiagram = createLoadDiagram()
-                loadDiagram.data.clear()
-                loadDiagram.data.addAll(seriesForLoadDiagram)
-            } else {
-//                Logger.getAnonymousLogger().warning("currentTestItem = null$currentTestItem")
+            fillStackPairs()
+            createLoadDiagram()
+        }
+    }
+
+    private fun fillStackPairs() {
+        when {
+            radioResonance.isSelected -> {
+                for (i in 0 until currentTestItem!!.timesResonance.size) {
+                    handleAddPair()
+                    lastPair.first.text = currentTestItem!!.timesResonance[i].toString()
+                    lastPair.second.text = currentTestItem!!.voltageResonance[i].toString()
+                }
+            }
+            radioViu.isSelected -> {
+                for (i in 0 until currentTestItem!!.timesViu.size) {
+                    handleAddPair()
+                    lastPair.first.text = currentTestItem!!.timesViu[i].toString()
+                    lastPair.second.text = currentTestItem!!.voltageViu[i].toString()
+                }
+            }
+            radioViuDC.isSelected -> {
+                for (i in 0 until currentTestItem!!.timesViuDC.size) {
+                    handleAddPair()
+                    lastPair.first.text = currentTestItem!!.timesViuDC[i].toString()
+                    lastPair.second.text = currentTestItem!!.voltageViuDC[i].toString()
+                }
             }
         }
     }
 
-    private fun fillPairsOfLoadDiagram() {
-        for (i in 0 until currentTestItem!!.timesResonance.size) {
-            handleAddPair()
-            lastPairResonance.first.text = currentTestItem!!.timesResonance[i].toString()
-            lastPairResonance.second.text = currentTestItem!!.voltageResonance[i].toString()
-        }
-    }
+    private fun createLoadDiagram() {
+        loadDiagram.data.clear()
 
-    private fun createLoadDiagram(): XYChart.Series<Number, Number> {
-        val seriesTimesAndTorques = XYChart.Series<Number, Number>()
+        val seriesTimesAndVoltage = XYChart.Series<Number, Number>()
 
         var desperateDot = 0.0
 
-        seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageResonance[0]))
-
-        for (i in 0 until currentTestItem!!.timesResonance.size) {
-            seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i]))
-            if (i != currentTestItem!!.timesResonance.size - 1) {
-                seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i + 1]))
+        when {
+            radioResonance.isSelected -> {
+                if (currentTestItem!!.voltageResonance.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageResonance[0]))
+                    for (i in 0 until currentTestItem!!.timesResonance.size) {
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i]))
+                        if (i != currentTestItem!!.timesResonance.size - 1) {
+                            seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i + 1]))
+                        }
+                        desperateDot += currentTestItem!!.timesResonance[i]
+                    }
+                }
             }
-            desperateDot += currentTestItem!!.timesResonance[i]
+            radioViu.isSelected -> {
+                if (currentTestItem!!.voltageViu.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageViu[0]))
+                    for (i in 0 until currentTestItem!!.timesViu.size) {
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViu[i],
+                                currentTestItem!!.voltageViu[i]))
+                        if (i != currentTestItem!!.timesViu.size - 1) {
+                            seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViu[i],
+                                    currentTestItem!!.voltageViu[i + 1]))
+                        }
+                        desperateDot += currentTestItem!!.timesViu[i]
+                    }
+                }
+            }
+            radioViuDC.isSelected -> {
+                if (currentTestItem!!.voltageViuDC.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageViuDC[0]))
+                    for (i in 0 until currentTestItem!!.timesViuDC.size) {
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i]))
+                        if (i != currentTestItem!!.timesViuDC.size - 1) {
+                            seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i + 1]))
+                        }
+                        desperateDot += currentTestItem!!.timesViuDC[i]
+                    }
+                }
+            }
         }
+        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, 0))
 
-        seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, 0))
-
-        return seriesTimesAndTorques
+        loadDiagram.data.addAll(seriesTimesAndVoltage)
     }
 
     private fun removeData() {
-        for (i in 0 until stackPairsResonance.size) {
-            removePairResonance()
-        }
-    }
-
-    private fun initializeComboBoxResult() {
-        if (mainModel.currentProtocol != null) {
-            val currentProtocol = mainModel.currentProtocol
-            resultData.clear()
-            resultData.add(ResultModel("Напряжение A, Н•м", currentProtocol.e1VoltageA))
-            resultData.add(ResultModel("Напряжение B, Н•м", currentProtocol.e1VoltageB))
-            resultData.add(ResultModel("Напряжение C, Н•м", currentProtocol.e1VoltageC))
-            resultData.add(ResultModel("Ток A, Н•м", currentProtocol.e1CurrentA))
-            resultData.add(ResultModel("Ток B, Н•м", currentProtocol.e1CurrentB))
-            resultData.add(ResultModel("Ток C, Н•м", currentProtocol.e1CurrentC))
-            resultData.add(ResultModel("Момент, Н•м", currentProtocol.e1Torque))
-            resultData.add(ResultModel("Частота вращения, об/мин", currentProtocol.e1Rotation))
-            resultData.add(ResultModel("Частота сети, Гц", currentProtocol.e1Frequency))
-            resultData.add(ResultModel("Полная мощность потребляемая от ИП , кВт", currentProtocol.e1Power))
-            resultData.add(ResultModel("Активная мощность, кВт", currentProtocol.e1PowerActive))
-            resultData.add(ResultModel("Коэффициент полезного действия, %", currentProtocol.e1Effiency))
-            resultData.add(ResultModel("Температура обмотки статора, °C", currentProtocol.e1Temperature))
+        for (i in 0 until stackPairs.size) {
+            removePair()
         }
     }
 
@@ -415,13 +406,12 @@ class MainViewController : Statable {
             val um = context.createUnmarshaller()
             val protocol = um.unmarshal(file) as Protocol
             comboBoxTestItem.selectionModel.select(protocol.getObject())
-            mainModel!!.currentProtocol = protocol
+            mainModel.currentProtocol = protocol
             currentState.toWaitState()
             Toast.makeText(String.format("Протокол %s успешно загружен", file.name)).show(Toast.ToastType.INFORMATION)
         } catch (e: Exception) {
             Toast.makeText("Ошибка загрузки протокола").show(Toast.ToastType.ERROR)
         }
-
     }
 
     @FXML
@@ -483,7 +473,6 @@ class MainViewController : Statable {
         Platform.exit()
     }
 
-
     @FXML
     @Throws(IOException::class)
     private fun handleProtocols() {
@@ -536,7 +525,6 @@ class MainViewController : Statable {
         } catch (e: IOException) {
             Toast.makeText("Ошибка при импорте базы данных").show(Toast.ToastType.ERROR)
         }
-
     }
 
     @FXML
@@ -558,7 +546,6 @@ class MainViewController : Statable {
         } catch (e: IOException) {
             Toast.makeText("Ошибка при экспорте базы данных").show(Toast.ToastType.ERROR)
         }
-
     }
 
     @FXML
@@ -567,7 +554,7 @@ class MainViewController : Statable {
         val loader = FXMLLoader()
         loader.location = Main::class.java.getResource("layouts/deviceStateWindow.fxml")
         val page = loader.load<Parent>()
-        val controller: DeviceStateWindowController = loader.getController<DeviceStateWindowController>()
+        val controller: DeviceStateWindowController = loader.getController()
 
         val dialogStage = Stage()
         dialogStage.title = "Состояние устройств"
@@ -577,10 +564,10 @@ class MainViewController : Statable {
         dialogStage.isResizable = false
         dialogStage.scene = scene
 
-        dialogStage.setOnCloseRequest { event ->
+        dialogStage.setOnCloseRequest {
             controller.flag = false
-
         }
+
         dialogStage.showAndWait()
     }
 
@@ -597,18 +584,11 @@ class MainViewController : Statable {
         dialogStage.isResizable = false
         dialogStage.scene = Scene(page)
 
-        dialogStage.setOnCloseRequest { event ->
+        dialogStage.setOnCloseRequest {
             communicationModel!!.finalizeAllDevices()
             communicationModel!!.deleteObservers()
         }
         dialogStage.showAndWait()
-    }
-
-    @FXML
-    private fun handleSelectTestItem() {
-        if (mainModel.isNeedRefresh) {
-            mainModel.isNeedRefresh = false
-        }
     }
 
     @FXML
@@ -618,29 +598,18 @@ class MainViewController : Statable {
 
     @FXML
     private fun handleButtonProtocolNext() {
-        handleTestItemGenerate()
-        if (!comboBoxTestItem.selectionModel.isEmpty) {
-            mainModel.createNewProtocol(textFieldSerialNumber.text, TestItemRepository.getTestItem(comboBoxTestItem.selectionModel.selectedItem.type))
+        if (currentTestItem != null) {
+            mainModel.createNewProtocol(textFieldSerialNumber.text, currentTestItem!!)
             startExperiment()
             toResultState()
         } else {
             Toast.makeText("Выберите объект испытания").show(Toast.ToastType.INFORMATION)
         }
-
     }
 
     fun handleMenuBarProtocolNew() {
         toIdleState()
     }
-
-    fun showSize() {
-        val widthScreen = Toolkit.getDefaultToolkit().screenSize.width - 400
-        val width = widthScreen / 6 - 13
-//        tabProtocol.style = "-fx-padding: 40 $width 40 $width"
-//        tabExperiments.style = "-fx-padding: 40 $width 40 $width"
-//        tabResults.style = "-fx-padding: 40 $width 40 $width"
-    }
-
 
     private fun startExperiment(): Boolean {
         return startExperiment("layouts/experiment1View.fxml")
@@ -662,7 +631,6 @@ class MainViewController : Statable {
             controller = loader.getController<ExperimentController>()
             controller!!.setDialogStage(dialogStage)
 
-//            dialogStage.initStyle(StageStyle.TRANSPARENT)
             dialogStage.showAndWait()
 
 
@@ -676,20 +644,15 @@ class MainViewController : Statable {
         return controller != null && controller.isCanceled
     }
 
-    fun handleEventLog() {
-
-    }
-
     fun setMain(exitappable: Exitappable) {
         this.exitappable = exitappable
     }
 
     @FXML
     fun handleSaveCurrentProtocol() {
-        ProtocolRepository.insertProtocol(mainModel!!.currentProtocol)
+        ProtocolRepository.insertProtocol(mainModel.currentProtocol)
         Toast.makeText("Результаты проведенных испытаний сохранены").show(Toast.ToastType.INFORMATION)
     }
-
 
     @FXML
     fun handleCheckMenuItemTheme() {
@@ -700,7 +663,6 @@ class MainViewController : Statable {
             root.stylesheets[0] = Main::class.java.getResource("styles/main_css_black.css").toURI().toString()
             "black"
         }
-
     }
 
     @FXML
@@ -725,12 +687,8 @@ class MainViewController : Statable {
     fun handleAbout() {
         val alert = Alert(Alert.AlertType.INFORMATION)
         alert.title = "Версия ПО"
-        alert.headerText = "Версия: 1.0.2"
-        alert.contentText = "Дата: 07.05.2019"
+        alert.headerText = "Версия: 0.1.0"
+        alert.contentText = "Дата: 02.08.2019"
         alert.showAndWait()
     }
-
-
 }
-
-

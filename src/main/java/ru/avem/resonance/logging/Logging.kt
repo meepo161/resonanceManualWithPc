@@ -127,7 +127,6 @@ object Logging {
                 }
 
             }
-            fillParameters(wb, protocol.points)
             val out = ByteArrayOutputStream()
             try {
                 wb.write(out)

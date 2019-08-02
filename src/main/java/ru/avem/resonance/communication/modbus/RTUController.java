@@ -104,7 +104,7 @@ public class RTUController implements ModbusController {
             return RequestStatus.PORT_NOT_INITIALIZED;
         }
 
-        int attempt = 2; // 1
+        int attempt = 2;
         byte[] inputArray;
         int readFrameSize;
         do {
@@ -114,7 +114,7 @@ public class RTUController implements ModbusController {
             if (readFrameSize == -1) {
                 return RequestStatus.PORT_NOT_INITIALIZED;
             }
-        } while (attempt-- > 0 && readFrameSize <= 4); // readFrameSize <= 4
+        } while (attempt-- > 0 && readFrameSize <= 4);
 
         if (readFrameSize > 4 &&
                 inputArray[0] == deviceAddress &&
@@ -125,7 +125,6 @@ public class RTUController implements ModbusController {
                     status = RequestStatus.FRAME_RECEIVED;
                     ((ByteBuffer) inputBuffer.clear()).put(inputArray, 0, readFrameSize).flip()
                             .position(3);
-//                    break;
                 } else {
                     switch (inputArray[2]) {
                         case 0x01:

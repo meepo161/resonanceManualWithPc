@@ -40,11 +40,7 @@ class Main : Application(), Exitappable {
     override fun start(primaryStage: Stage) {
         PRIMARY_STAGE = primaryStage
 
-//        if (BuildConfig.DEBUG) {
         showMainView()
-//        } else {
-//            showLoginView()
-//        }
 
         PRIMARY_STAGE.initStyle(StageStyle.TRANSPARENT)
         PRIMARY_STAGE.show()
@@ -105,7 +101,6 @@ class Main : Application(), Exitappable {
     }
 
     fun showMainView() {
-        mainViewController!!.showSize()
         PRIMARY_STAGE.title = "КСПЭМ"
         PRIMARY_STAGE.scene = mainViewScene
     }
