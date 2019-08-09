@@ -34,7 +34,6 @@ public class OwenPRController implements DeviceController {
         modbusController = controller;
     }
 
-
     @Override
     public void resetAllAttempts() {
         resetReadAttempts();
