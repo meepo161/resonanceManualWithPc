@@ -21,8 +21,6 @@
 
 package ru.avem.resonance.communication.serial.driver;
 
-import ru.avem.resonance.utils.Log;
-
 import javax.usb.*;
 import java.io.IOException;
 import java.util.Collections;
@@ -239,7 +237,7 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                         amtWritten = usbIrp.getActualLength();
                     }
 
-                    Log.d(TAG, "Wrote amt=" + amtWritten + " attempted=" + writeLength);
+//                    Log.d(TAG, "Wrote amt=" + amtWritten + " attempted=" + writeLength);
                     offset += amtWritten;
                 }
             } catch (UsbException e) {
