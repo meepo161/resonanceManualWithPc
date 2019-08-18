@@ -52,4 +52,5 @@ public class LatrModel extends Observable {
         setChanged();
         notifyObservers(new Object[]{deviceID, param, value});
     }
+
 }

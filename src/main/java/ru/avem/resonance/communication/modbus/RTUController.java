@@ -5,6 +5,7 @@ import ru.avem.resonance.communication.modbus.utils.CRC16;
 
 import java.nio.ByteBuffer;
 
+import static ru.avem.resonance.communication.CommunicationModel.LOCK;
 import static ru.avem.resonance.utils.Utils.sleep;
 
 public class RTUController implements ModbusController {
@@ -95,62 +96,68 @@ public class RTUController implements ModbusController {
         return sendCommand(deviceAddress, Command.READ_EXCEPTION_STATUS.getValue(), outputBuffer, inputBuffer);
     }
 
-    private synchronized RequestStatus sendCommand(byte deviceAddress, short command, ByteBuffer outputBuffer, ByteBuffer inputBuffer) {
-        RequestStatus status = RequestStatus.UNKNOWN;
+    private RequestStatus sendCommand(byte deviceAddress, short command, ByteBuffer outputBuffer, ByteBuffer inputBuffer) {
+        synchronized (LOCK) {
+            RequestStatus status;
 
-        LogAnalyzer.addWrite();
-        int writeFrameSize = connection.write(outputBuffer.array());
-        if (writeFrameSize == -1) {
-            return RequestStatus.PORT_NOT_INITIALIZED;
-        }
-
-        int attempt = 2;
-        byte[] inputArray;
-        int readFrameSize;
-        do {
-            sleep(ModbusController.READ_DELAY);
-            inputArray = new byte[256];
-            readFrameSize = connection.read(inputArray);
-            if (readFrameSize == -1) {
+            if (!connection.isInitiatedConnection()) {
                 return RequestStatus.PORT_NOT_INITIALIZED;
             }
-        } while (attempt-- > 0 && readFrameSize <= 4);
 
-        if (readFrameSize > 4 &&
-                inputArray[0] == deviceAddress &&
-                (inputArray[1] == command || inputArray[1] == (command & 0x80))) {
-            if (CRC16.check(inputArray, readFrameSize)) {
-                if ((inputArray[1] & 0x80) == 0) {
-                    LogAnalyzer.addSuccess();
-                    status = RequestStatus.FRAME_RECEIVED;
-                    ((ByteBuffer) inputBuffer.clear()).put(inputArray, 0, readFrameSize).flip()
-                            .position(3);
-                } else {
-                    switch (inputArray[2]) {
-                        case 0x01:
-                            status = RequestStatus.BAD_FUNCTION;
-                            break;
-                        case 0x02:
-                            status = RequestStatus.BAD_DATA_ADDS;
-                            break;
-                        case 0x03:
-                            status = RequestStatus.BAD_DATA_VALUE;
-                            break;
-                        case 0x04:
-                            status = RequestStatus.DEVICE_FAILURE;
-                            break;
-                        default:
-                            status = RequestStatus.UNKNOWN;
-                            break;
+            LogAnalyzer.addWrite();
+            int writeFrameSize = connection.write(outputBuffer.array());
+            if (writeFrameSize == -1) {
+                return RequestStatus.PORT_NOT_INITIALIZED;
+            }
+
+            int attempt = 1;
+            byte[] inputArray;
+            int readFrameSize;
+            do {
+                sleep(ModbusController.READ_DELAY);
+                inputArray = new byte[256];
+                readFrameSize = connection.read(inputArray);
+                if (readFrameSize == -1) {
+                    return RequestStatus.PORT_NOT_INITIALIZED;
+                }
+            } while (attempt-- > 0 && readFrameSize <= 4);
+
+            if (readFrameSize > 4 &&
+                    inputArray[0] == deviceAddress &&
+                    (inputArray[1] == command || inputArray[1] == (command & 0x80))) {
+                if (CRC16.check(inputArray, readFrameSize)) {
+                    if ((inputArray[1] & 0x80) == 0) {
+                        LogAnalyzer.addSuccess();
+                        status = RequestStatus.FRAME_RECEIVED;
+                        ((ByteBuffer) inputBuffer.clear()).put(inputArray, 0, readFrameSize).flip()
+                                .position(3);
+                    } else {
+                        switch (inputArray[2]) {
+                            case 0x01:
+                                status = RequestStatus.BAD_FUNCTION;
+                                break;
+                            case 0x02:
+                                status = RequestStatus.BAD_DATA_ADDS;
+                                break;
+                            case 0x03:
+                                status = RequestStatus.BAD_DATA_VALUE;
+                                break;
+                            case 0x04:
+                                status = RequestStatus.DEVICE_FAILURE;
+                                break;
+                            default:
+                                status = RequestStatus.UNKNOWN;
+                                break;
+                        }
                     }
+                } else {
+                    status = RequestStatus.BAD_CRC;
                 }
             } else {
-                status = RequestStatus.BAD_CRC;
+                status = RequestStatus.UNKNOWN;
             }
-        } else {
-            status = RequestStatus.UNKNOWN;
+            sleep(ModbusController.DELAY);
+            return status;
         }
-        sleep(ModbusController.DELAY);
-        return status;
     }
 }

@@ -101,7 +101,7 @@ class Main : Application(), Exitappable {
     }
 
     fun showMainView() {
-        PRIMARY_STAGE.title = "КСПЭМ"
+        PRIMARY_STAGE.title = "ВИУ"
         PRIMARY_STAGE.scene = mainViewScene
     }
 

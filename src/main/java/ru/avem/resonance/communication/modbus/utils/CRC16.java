@@ -88,4 +88,11 @@ public class CRC16 implements Checksum {
         short supposedSum = instance.buffer.getShort();
         return correctSum == supposedSum;
     }
+
+    public static void signReversWithSlice(ByteBuffer b) {
+        CRC16 instance = new CRC16();
+        instance.reset();
+        instance.update(b.array(), 2, b.position() - 2);
+        b.putShort((short) (instance.getValue()));
+    }
 }

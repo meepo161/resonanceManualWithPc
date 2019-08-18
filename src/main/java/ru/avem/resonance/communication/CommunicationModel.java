@@ -6,12 +6,9 @@ import ru.avem.resonance.communication.connections.SerialConnection;
 import ru.avem.resonance.communication.devices.DeviceController;
 import ru.avem.resonance.communication.devices.avem_voltmeter.AvemVoltmeterController;
 import ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Controller;
-import ru.avem.resonance.communication.devices.ikas.IKASController;
+import ru.avem.resonance.communication.devices.latr.LatrController;
 import ru.avem.resonance.communication.devices.parmaT400.ParmaT400Controller;
-import ru.avem.resonance.communication.devices.phasemeter.PhaseMeterController;
-import ru.avem.resonance.communication.devices.pm130.PM130Controller;
 import ru.avem.resonance.communication.devices.pr200.OwenPRController;
-import ru.avem.resonance.communication.devices.trm.TRMController;
 import ru.avem.resonance.communication.modbus.ModbusController;
 import ru.avem.resonance.communication.modbus.RTUController;
 import ru.avem.resonance.utils.Logger;
@@ -24,8 +21,7 @@ import java.util.Observer;
 
 import static ru.avem.resonance.communication.devices.DeviceController.*;
 import static ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Controller.*;
-import static ru.avem.resonance.communication.devices.ikas.IKASController.*;
-import static ru.avem.resonance.communication.devices.phasemeter.PhaseMeterController.START_STOP_REGISTER;
+import static ru.avem.resonance.communication.devices.latr.LatrController.*;
 import static ru.avem.resonance.communication.devices.pr200.OwenPRController.*;
 import static ru.avem.resonance.utils.Utils.sleep;
 
@@ -38,17 +34,13 @@ public class CommunicationModel extends Observable implements Observer {
     private Connection RS485Connection;
 
     public OwenPRController owenPRController;
-    public PM130Controller pm130Controller;
     public AvemVoltmeterController avemVoltmeterController;
-    public IKASController ikasController;
+    public AvemVoltmeterController avemKiloVoltmeterController;
     public ParmaT400Controller parmaT400Controller;
-    public PhaseMeterController phaseMeterController;
     public DeltaCP2000Controller deltaCP2000Controller;
-    //    public FRA800Controller fra800ObjectController;
-    public TRMController trmController;
+    public LatrController latrController;
 
     private int kms1;
-    private int kms2;
 
     private boolean lastOne;
     private boolean isFinished;
@@ -62,40 +54,38 @@ public class CommunicationModel extends Observable implements Observer {
         connectMainBus();
         ModbusController modbusController = new RTUController(RS485Connection);
 
-        pm130Controller = new PM130Controller(1, this, modbusController, PM130_ID);
-        devicesControllers.add(pm130Controller);
-
-        parmaT400Controller = new ParmaT400Controller(2, this, modbusController, PARMA400_ID);
+        parmaT400Controller = new ParmaT400Controller(1, this, modbusController, PARMA400_ID);
         devicesControllers.add(parmaT400Controller);
 
-        avemVoltmeterController = new AvemVoltmeterController(3, this, modbusController, AVEM_ID);
+        avemVoltmeterController = new AvemVoltmeterController(2, this, modbusController, AVEM_ID);
         devicesControllers.add(avemVoltmeterController);
 
-        phaseMeterController = new PhaseMeterController(4, this, modbusController, PHASEMETER_ID);
-        devicesControllers.add(phaseMeterController);
-
-        ikasController = new IKASController(5, this, modbusController, IKAS_ID);
-        devicesControllers.add(ikasController);
-
-        owenPRController = new OwenPRController(6, this, modbusController, PR200_ID);
+        owenPRController = new OwenPRController(3, this, modbusController, PR200_ID);
         devicesControllers.add(owenPRController);
 
-        trmController = new TRMController(7, this, modbusController, TRM_ID);
-        devicesControllers.add(trmController);
+        latrController = new LatrController(0xFA, this, modbusController, LATR_ID);
+        devicesControllers.add(latrController);
 
-        deltaCP2000Controller = new DeltaCP2000Controller(11, this, modbusController, DELTACP2000_ID);
+        deltaCP2000Controller = new DeltaCP2000Controller(5, this, modbusController, DELTACP2000_ID);
         devicesControllers.add(deltaCP2000Controller);
+
+        avemKiloVoltmeterController = new AvemVoltmeterController(6, this, modbusController, KILOAVEM_ID);
+        devicesControllers.add(avemKiloVoltmeterController);
 
         new Thread(() -> {
             while (!isFinished) {
                 for (DeviceController deviceController : devicesControllers) {
                     if (deviceController.isNeedToRead()) {
-                        if (deviceController instanceof PM130Controller) {
-                            for (int i = 1; i <= 4; i++) {
+                        if (deviceController instanceof LatrController) {
+                            for (int i = 0; i <= 2; i++) {
                                 deviceController.read(i);
                             }
                         } else if (deviceController instanceof ParmaT400Controller) {
                             for (int i = 1; i <= 4; i++) {
+                                deviceController.read(i);
+                            }
+                        } else if (deviceController instanceof DeltaCP2000Controller) {
+                            for (int i = 0; i <= 1; i++) {
                                 deviceController.read(i);
                             }
                         } else {
@@ -137,12 +127,11 @@ public class CommunicationModel extends Observable implements Observer {
 
     public void setNeedToReadAllDevices(boolean isNeed) {
         owenPRController.setNeedToRead(isNeed);
+        avemVoltmeterController.setNeedToRead(isNeed);
+        avemKiloVoltmeterController.setNeedToRead(isNeed);
         deltaCP2000Controller.setNeedToRead(isNeed);
-        ikasController.setNeedToRead(isNeed);
         parmaT400Controller.setNeedToRead(isNeed);
-        phaseMeterController.setNeedToRead(isNeed);
-        pm130Controller.setNeedToRead(isNeed);
-        trmController.setNeedToRead(isNeed);
+        latrController.setNeedToRead(isNeed);
     }
 
     public void setNeedToReadForDebug(boolean isNeed) {
@@ -152,12 +141,11 @@ public class CommunicationModel extends Observable implements Observer {
 
     public void resetAllDevices() {
         owenPRController.resetAllAttempts();
+        avemVoltmeterController.resetAllAttempts();
+        avemKiloVoltmeterController.resetAllAttempts();
         deltaCP2000Controller.resetAllAttempts();
-        ikasController.resetAllAttempts();
         parmaT400Controller.resetAllAttempts();
-        phaseMeterController.resetAllAttempts();
-        pm130Controller.resetAllAttempts();
-        trmController.resetAllAttempts();
+        latrController.resetAllAttempts();
     }
 
     private void connectMainBus() {
@@ -209,15 +197,11 @@ public class CommunicationModel extends Observable implements Observer {
     public void offAllKms() {
         kms1 = 0;
         writeToKms1Register(kms1);
-        kms2 = 0;
-        writeToKms2Register(kms2);
     }
 
     public void onAllKms() {
         kms1 = 1;
         writeToKms1Register(kms1);
-        kms2 = 2;
-        writeToKms2Register(kms2);
     }
 
     private void writeToKms1Register(int value) {
@@ -238,7 +222,7 @@ public class CommunicationModel extends Observable implements Observer {
         } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {
         }
         Logger.withTag("DEBUG_TAG").log("numberOfRegister=" + numberOfRegister + " kms=" + kms);
-        Logger.withTag("DEBUG_TAG").log("1=" + kms1 + " 2=" + kms2);
+        Logger.withTag("DEBUG_TAG").log("1=" + kms1);
     }
 
     public void offRegisterInTheKms(int numberOfRegister, int kms) {
@@ -251,7 +235,7 @@ public class CommunicationModel extends Observable implements Observer {
         } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
         }
         Logger.withTag("DEBUG_TAG").log("numberOfRegister=" + numberOfRegister + " kms=" + kms);
-        Logger.withTag("DEBUG_TAG").log("1=" + kms1 + " 2=" + kms2);
+        Logger.withTag("DEBUG_TAG").log("1=" + kms1);
     }
 
     public void initOwenPrController() {
@@ -262,34 +246,12 @@ public class CommunicationModel extends Observable implements Observer {
         owenPRController.write(RES_REGISTER, 1, 1);
     }
 
-    public void startPhaseMeter() {
-        phaseMeterController.write(START_STOP_REGISTER, (short) 0x01);
-    }
-
-    public void startMeasuringAB() {
-        ikasController.write(MEASURABLE_TYPE_REGISTER, MEASURABLE_TYPE_AB);
-        sleep(1 * 1000);
-        ikasController.write(START_MEASURABLE_REGISTER, 0x01);
-    }
-
-    public void startMeasuringBC() {
-        ikasController.write(MEASURABLE_TYPE_REGISTER, MEASURABLE_TYPE_BC);
-        sleep(1 * 1000);
-        ikasController.write(START_MEASURABLE_REGISTER, 0x01);
-    }
-
-    public void startMeasuringAC() {
-        ikasController.write(MEASURABLE_TYPE_REGISTER, MEASURABLE_TYPE_AC);
-        sleep(1 * 1000);
-        ikasController.write(START_MEASURABLE_REGISTER, 0x01);
-    }
-
     public void startObject() {
         deltaCP2000Controller.write(CONTROL_REGISTER, 1, 0b10);
     }
 
-    public void startReversObject() {
-        deltaCP2000Controller.write(CONTROL_REGISTER, 1, 0b10_00_10);
+    public void changeRotation() {
+        deltaCP2000Controller.write(CONTROL_REGISTER, 1, 0b0011_0000);
     }
 
     public void stopObject() {
@@ -298,14 +260,20 @@ public class CommunicationModel extends Observable implements Observer {
 
     public void setObjectParams(int fOut, int voltageP1, int fP1) {
         deltaCP2000Controller.write(MAX_VOLTAGE_REGISTER, 1, 400 * 10);
-        deltaCP2000Controller.write(MAX_FREQUENCY_REGISTER, 1, 210 * 100);
-        deltaCP2000Controller.write(NOM_FREQUENCY_REGISTER, 1, 210 * 100);
+        deltaCP2000Controller.write(MAX_FREQUENCY_REGISTER, 1, 51 * 100);
+        deltaCP2000Controller.write(NOM_FREQUENCY_REGISTER, 1, 50 * 100);
         deltaCP2000Controller.write(CURRENT_FREQUENCY_OUTPUT_REGISTER, 1, fOut);
         deltaCP2000Controller.write(POINT_1_VOLTAGE_REGISTER, 1, voltageP1);
         deltaCP2000Controller.write(POINT_1_FREQUENCY_REGISTER, 1, fP1);
         deltaCP2000Controller.write(POINT_2_VOLTAGE_REGISTER, 1, 40);
         deltaCP2000Controller.write(POINT_2_FREQUENCY_REGISTER, 1, 50);
     }
+
+    public void setEndsVFDParams(int paramEndUp, int paramEndDown) {
+        deltaCP2000Controller.write(END_UP_CONTROL_REGISTER, 1, paramEndUp);
+        deltaCP2000Controller.write(END_DOWN_CONTROL_REGISTER, 1, paramEndDown);
+    }
+
 
     public void setObjectFCur(int fCur) {
         deltaCP2000Controller.write(CURRENT_FREQUENCY_OUTPUT_REGISTER, 1, fCur);
@@ -315,187 +283,128 @@ public class CommunicationModel extends Observable implements Observer {
         deltaCP2000Controller.write(POINT_1_VOLTAGE_REGISTER, 1, voltageMax);
     }
 
-
-    public void initExperiment1Devices() {
+    public void startUpLATR(float voltage, boolean isNeedReset) {
+        Logger.withTag("STARTUP_LATR").log("startUpLATR");
+        if (isNeedReset) {
+            latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
+        }
+        voltage *= 1.1f;
+        int minDutty = 400;
+        int maxDutty = 200;
+        float corridor = 0.05f;
+        float delta = 0.02f;
+        int timeMinPulse = 50;
+        int timeMaxPulse = 300;
+        float timeMinPulsePercent = 800.0f;
+        float timeMaxPulsePercent = 50.0f;
+        float minDuttyPercent = 80.0f;
+        float maxDuttyPercent = 90.0f;
+        float timeMinPeriod = 10.0f;
+        float timeMaxPeriod = 100.0f;
+        float minVoltage = 200f;
+        Logger.withTag("REGULATION").log("voltage=" + voltage);
+        latrController.write(VALUE_REGISTER, voltage);
+//        latrController.write(TIME_MIN_PULSE_REGISTER, timeMinPulse);
+//        latrController.write(TIME_MAX_PULSE_REGISTER, timeMaxPulse);
+//        latrController.write(MIN_DUTTY_REGISTER, minDutty);
+//        latrController.write(MAX_DUTTY_REGISTER, maxDutty);
+        latrController.write(IR_TIME_PERIOD_MIN, timeMinPulsePercent);
+        latrController.write(IR_TIME_PERIOD_MAX, timeMaxPulsePercent);
+        latrController.write(IR_TIME_PULSE_MIN_PERCENT, timeMinPeriod);
+        latrController.write(IR_TIME_PULSE_MAX_PERCENT, timeMaxPeriod);
+        latrController.write(IR_DUTY_MIN_PERCENT, minDuttyPercent);
+        latrController.write(IR_DUTY_MAX_PERCENT, maxDuttyPercent);
+        latrController.write(REGULATION_TIME_REGISTER, 300000);
+        latrController.write(CORRIDOR_REGISTER, corridor);
+        latrController.write(DELTA_REGISTER, delta);
+        latrController.write(MIN_VOLTAGE_LIMIT_REGISTER, minVoltage);
+        latrController.write(START_STOP_REGISTER, 1);
     }
 
-    public void initExperiment2Devices() {
-        resetTimer();
-        ikasController.setNeedToRead(true);
-        ikasController.resetAllAttempts();
-        trmController.setNeedToRead(true);
-        trmController.resetAllAttempts();
+    public void stopLATR() {
+        latrController.write(START_STOP_REGISTER, 0);
     }
 
-    public void initExperiment3Devices() {
+
+    public void initExperimentDevices() {
         resetTimer();
-        pm130Controller.setNeedToRead(true);
-        pm130Controller.resetAllAttempts();
         parmaT400Controller.setNeedToRead(true);
         parmaT400Controller.resetAllAttempts();
-        phaseMeterController.setNeedToRead(true);
-        phaseMeterController.resetAllAttempts();
-    }
-
-    public void initExperiment4Devices() {
-        resetTimer();
-        pm130Controller.setNeedToRead(true);
-        pm130Controller.resetAllAttempts();
-        deltaCP2000Controller.setNeedToRead(true);
-        deltaCP2000Controller.resetAllAttempts();
-    }
-
-    public void initExperiment5Devices() {
-        resetTimer();
-        pm130Controller.setNeedToRead(true);
-        pm130Controller.resetAllAttempts();
-    }
-
-    public void initExperiment6Devices() {
-        resetTimer();
-        pm130Controller.setNeedToRead(true);
-        pm130Controller.resetAllAttempts();
-        deltaCP2000Controller.setNeedToRead(true);
-        deltaCP2000Controller.resetAllAttempts();
-    }
-
-    public void initExperiment7Devices() {
-        resetTimer();
-        pm130Controller.setNeedToRead(true);
-        pm130Controller.resetAllAttempts();
-        deltaCP2000Controller.setNeedToRead(true);
-        deltaCP2000Controller.resetAllAttempts();
         avemVoltmeterController.setNeedToRead(true);
         avemVoltmeterController.resetAllAttempts();
+        avemKiloVoltmeterController.setNeedToRead(true);
+        avemKiloVoltmeterController.resetAllAttempts();
+        owenPRController.setNeedToRead(true);
+        owenPRController.resetAllAttempts();
+        latrController.setNeedToRead(true);
+        latrController.resetAllAttempts();
+        deltaCP2000Controller.setNeedToRead(true);
+        deltaCP2000Controller.resetAllAttempts();
+
     }
 
-    public void onKM2() {
-        onRegisterInTheKms(1, 1);
-    }
-
-    public void onKM3() {
+    public void onPRO1() {
         onRegisterInTheKms(2, 1);
     }
 
-    public void onKM4() {
+    public void onPRO2() {
+        onRegisterInTheKms(2, 1);
+    }
+
+    public void onPRO3() {
         onRegisterInTheKms(3, 1);
     }
 
-    public void onKM5() {
+    public void onPRO4() {
         onRegisterInTheKms(4, 1);
     }
 
-    public void onKM6() {
+    public void onPRO5() {
         onRegisterInTheKms(5, 1);
     }
 
-    public void onKM7() {
+    public void onPRO6() {
         onRegisterInTheKms(6, 1);
     }
 
-    public void onKM11() {
+    public void onPRO7() {
         onRegisterInTheKms(7, 1);
     }
 
-    public void onKM12() {
+    public void onPRO8() {
         onRegisterInTheKms(8, 1);
     }
 
-    public void onKM13() {
-        onRegisterInTheKms(1, 2);
-    }
-
-    public void onK10() {
-        onRegisterInTheKms(2, 2);
-    }
-
-    public void onK9() {
-        onRegisterInTheKms(3, 2);
-    }
-
-    public void onPR4M1() {
-        onRegisterInTheKms(4, 2);
-    }
-
-    public void onPR5M1() {
-        onRegisterInTheKms(5, 2);
-    }
-
-    public void onK8() {
-        onRegisterInTheKms(6, 2);
-    }
-
-    public void onPR7M1() {
-        onRegisterInTheKms(7, 2);
-    }
-
-    public void onPR8M1() {
-        onRegisterInTheKms(8, 2);
-    }
-
-
-    public void offPR1() {
+    public void offPRO1() {
         offRegisterInTheKms(1, 1);
     }
 
-    public void offPR2() {
+    public void offPRO2() {
         offRegisterInTheKms(2, 1);
     }
 
-    public void offPR3() {
+    public void offPRO3() {
         offRegisterInTheKms(3, 1);
     }
 
-    public void offKM5() {
+    public void offPRO4() {
         offRegisterInTheKms(4, 1);
     }
 
-    public void offKM6() {
+    public void offPRO5() {
         offRegisterInTheKms(5, 1);
     }
 
-    public void offKM7() {
+    public void offPRO6() {
         offRegisterInTheKms(6, 1);
     }
 
-    public void offPR7() {
+    public void offPRO7() {
         offRegisterInTheKms(7, 1);
     }
 
-    public void offPR8() {
+    public void offPRO8() {
         offRegisterInTheKms(8, 1);
-    }
-
-    public void offKM1M1() {
-        offRegisterInTheKms(1, 2);
-    }
-
-    public void offPR2M1() {
-        offRegisterInTheKms(2, 2);
-    }
-
-    public void offPR3M1() {
-        offRegisterInTheKms(3, 2);
-    }
-
-    public void offPR4M1() {
-        offRegisterInTheKms(4, 2);
-    }
-
-    public void offPR5M1() {
-        offRegisterInTheKms(5, 2);
-    }
-
-    public void offPR6M1() {
-        offRegisterInTheKms(6, 2);
-    }
-
-    public void offPR7M1() {
-        offRegisterInTheKms(7, 2);
-    }
-
-    public void offPR8M1() {
-        offRegisterInTheKms(8, 2);
     }
 
     public void setDeviceStateOn(boolean deviceStateOn) {

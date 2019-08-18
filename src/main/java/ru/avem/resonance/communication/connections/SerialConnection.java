@@ -3,14 +3,11 @@ package ru.avem.resonance.communication.connections;
 import ru.avem.resonance.communication.serial.driver.UsbSerialDriver;
 import ru.avem.resonance.communication.serial.driver.UsbSerialPort;
 import ru.avem.resonance.communication.serial.driver.UsbSerialProber;
-import ru.avem.resonance.utils.Log;
 
 import javax.usb.UsbException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-
-import static ru.avem.resonance.communication.modbus.utils.Utils.toHexString;
 
 public class SerialConnection implements Connection {
     private static final String TAG = "StatusActivity";
@@ -38,26 +35,35 @@ public class SerialConnection implements Connection {
 
     @Override
     public boolean initConnection() {
-        Log.d("DEBUG_TAG", "initConnection");
+//        Log.d("DEBUG_TAG", "initConnection");
         UsbSerialDriver usbSerialDriver = getSerialDriver(); //экземпляр интерфейса UsbSerialDriver присваеваем сериал драйвер
         if (usbSerialDriver != null) {  //если ничего не присвоилось
             UsbSerialPort port = usbSerialDriver.getPorts().get(0); //берем первый порт и присваевам его в port
             try {
-                port.open(); //открываем порт
-                port.setParameters(baudRate, dataBits, stopBits, parity); //устанавливаем значения порту
-                this.port = port; //локальное значение сохраняем в поле класса
-                Log.d("DEBUG_TAG", "mPort = port");
+                port.open();
+                this.port = port;
+                setPortParameters(baudRate, dataBits, stopBits, parity);
+//                Log.d("DEBUG_TAG", "mPort = port");
             } catch (UsbException e) {
                 e.printStackTrace();
-                Log.d("DEBUG_TAG", "mPort = UsbException");
+//                Log.d("DEBUG_TAG", "mPort = UsbException");
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.d("DEBUG_TAG", "mPort = IOException");
+//                Log.d("DEBUG_TAG", "mPort = IOException");
             }
 
             return true;
         } else {
             return false;
+        }
+    }
+
+    @Override
+    public void setPortParameters(int baudRate, int dataBits, int stopBits, int parity) {
+        try {
+            port.setParameters(baudRate, dataBits, stopBits, parity);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -74,12 +80,13 @@ public class SerialConnection implements Connection {
         }
         for (UsbSerialDriver availableDriver : availableDrivers) {
             try {
-                Log.d("PRODUCT_NAME", availableDriver.getDevice().getProductString());
+//                Log.d("PRODUCT_NAME", availableDriver.getDevice().getProductString());
                 if (availableDriver.getDevice().getProductString().equals(productName)) { //сравниваем наш драйвер со списком
-                    Log.d("PRODUCT_NAME", "TRUE");
+//                    Log.d("PRODUCT_NAME", "TRUE");
                     return availableDriver;
                 }
-            } catch (UsbException | UnsupportedEncodingException ignored) {}
+            } catch (UsbException | UnsupportedEncodingException ignored) {
+            }
         }
         return null;
     }
@@ -99,16 +106,16 @@ public class SerialConnection implements Connection {
     }
 
     @Override
-    public int write(byte[] outputArray) {
+    public synchronized int write(byte[] outputArray) {
         int numBytesWrite = 0;
         try {
             if (port != null) {
                 numBytesWrite = port.write(outputArray, writeTimeout);
             } else {
-                Log.i(TAG, "mPort null");
+//                Log.i(TAG, "mPort null");
             }
-            Log.i(TAG, "Write " + numBytesWrite + " bytes.");
-            Log.i(TAG, "Write " + toHexString(outputArray));
+//            Log.i(TAG, "Write " + numBytesWrite + " bytes.");
+//            Log.i(TAG, "Write " + toHexString(outputArray));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (UsbException e) {
@@ -118,16 +125,16 @@ public class SerialConnection implements Connection {
     }
 
     @Override
-    public int read(byte[] inputArray) {
+    public synchronized int read(byte[] inputArray) {
         int numBytesRead = 0;
         try {
             if (port != null) {
                 numBytesRead = port.read(inputArray, readTimeout);
             } else {
-                Log.i(TAG, "mPort null");
+//                Log.i(TAG, "mPort null");
             }
-            Log.i(TAG, "Read " + numBytesRead + " bytes.");
-            Log.i(TAG, "Read: " + toHexString(inputArray, numBytesRead));
+//            Log.i(TAG, "Read " + numBytesRead + " bytes.");
+//            Log.i(TAG, "Read: " + toHexString(inputArray, numBytesRead));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (UsbException e) {

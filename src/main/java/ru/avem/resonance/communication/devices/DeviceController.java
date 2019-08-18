@@ -8,15 +8,12 @@ public interface DeviceController {
     byte NUMBER_OF_READ_ATTEMPTS_OF_ATTEMPTS = 5;
     byte NUMBER_OF_WRITE_ATTEMPTS_OF_ATTEMPTS = 5;
 
-    int PM130_ID = 1;
-    int PARMA400_ID = 2;
-    int AVEM_ID = 3;
-    int PHASEMETER_ID = 4;
-    int IKAS_ID = 5;
-    int PR200_ID = 6;
-    int TRM_ID = 7;
-    int MEGACS_ID = 8;
-    int DELTACP2000_ID = 11;
+    int PARMA400_ID = 1;
+    int AVEM_ID = 2;
+    int PR200_ID = 3;
+    int LATR_ID = 250;
+    int DELTACP2000_ID = 5;
+    int KILOAVEM_ID = 6;
 
     void read(Object... args);
 

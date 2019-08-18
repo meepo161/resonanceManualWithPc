@@ -189,18 +189,24 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
             int numBytesRead = 0;
             synchronized (readBufferLock) {
                 try {
-                    inputPipe.open();
+                    if (!inputPipe.isOpen()) {
+                        inputPipe.open();
+                    } else {
+                        return numBytesRead;
+                    }
                     UsbIrp usbIrp = inputPipe.asyncSubmit(mReadBuffer);
                     usbIrp.waitUntilComplete(timeoutMillis);
                     numBytesRead = usbIrp.getActualLength();
                     System.arraycopy(mReadBuffer, 0, dest, 0, numBytesRead);
                 } catch (UsbException e) {
-                    System.out.println("Pipe is already open");
+                    System.out.println("readPipe is already open");
+                    inputPipe.abortAllSubmissions();
                 } finally {
                     try {
                         inputPipe.close();
                     } catch (UsbException e) {
-                        System.out.println("Pipe is still busy");
+                        System.out.println("readPipe is still busy");
+                        inputPipe.abortAllSubmissions();
                     }
                 }
             }
@@ -237,12 +243,14 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                     offset += amtWritten;
                 }
             } catch (UsbException e) {
-                e.printStackTrace();
+                System.out.println("writePipe is already open");
+                outputPipe.abortAllSubmissions();
             } finally {
                 try {
                     outputPipe.close();
                 } catch (UsbException e) {
-                    e.printStackTrace();
+                    System.out.println("writePipe is still busy");
+                    outputPipe.abortAllSubmissions();
                 }
             }
 
@@ -270,9 +278,9 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                 e.printStackTrace();
             }
 
-            if (irp.getData()[0] < 0) {
-                throw new IOException("Error setting baud rate.");
-            }
+//            if (irp.getData()[0] < 0) {
+//                throw new IOException("Error setting baudrate. " + irp.getData()[0]);
+//            }
         }
 
         @Override
@@ -300,6 +308,9 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
             }
 
             switch (parity) {
+//                case 0:
+//                    configDataBits |= 0x0000;
+//                    break;
                 case PARITY_ODD:
                     configDataBits |= 0x0010;
                     break;

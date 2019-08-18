@@ -20,6 +20,12 @@ public class LatrController implements DeviceController {
     public static final short TIME_MAX_PULSE_REGISTER = 149;
     public static final short MIN_VOLTAGE_LIMIT_REGISTER = 150;
     public static final short START_STOP_REGISTER = 151;
+    public static final short IR_TIME_PULSE_MAX_PERCENT = 171;
+    public static final short IR_TIME_PULSE_MIN_PERCENT = 172;
+    public static final short IR_DUTY_MAX_PERCENT = 173;
+    public static final short IR_DUTY_MIN_PERCENT = 174;
+    public static final short IR_TIME_PERIOD_MAX = 175;
+    public static final short IR_TIME_PERIOD_MIN = 176;
 
 
     private static final int NUM_OF_WORDS_IN_REGISTER = 1;
@@ -77,6 +83,7 @@ public class LatrController implements DeviceController {
                     model.setReadResponding(true);
                     resetReadAttempts();
                     resetReadAttemptsOfAttempts();
+                    inputBuffer.position(2);
                     model.setStatus(inputBuffer.get());
                 } else {
                     read(args);

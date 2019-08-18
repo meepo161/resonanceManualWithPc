@@ -334,9 +334,11 @@ class MainViewController : Statable {
                 if (currentTestItem!!.voltageResonance.isNotEmpty()) {
                     seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageResonance[0]))
                     for (i in 0 until currentTestItem!!.timesResonance.size) {
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i]))
+                        seriesTimesAndVoltage.data.add(XYChart.Data(
+                                desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i]))
                         if (i != currentTestItem!!.timesResonance.size - 1) {
-                            seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i + 1]))
+                            seriesTimesAndVoltage.data.add(XYChart.Data(
+                                    desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i + 1]))
                         }
                         desperateDot += currentTestItem!!.timesResonance[i]
                     }
@@ -346,10 +348,12 @@ class MainViewController : Statable {
                 if (currentTestItem!!.voltageViu.isNotEmpty()) {
                     seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageViu[0]))
                     for (i in 0 until currentTestItem!!.timesViu.size) {
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViu[i],
+                        seriesTimesAndVoltage.data.add(XYChart.Data(
+                                desperateDot + currentTestItem!!.timesViu[i],
                                 currentTestItem!!.voltageViu[i]))
                         if (i != currentTestItem!!.timesViu.size - 1) {
-                            seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViu[i],
+                            seriesTimesAndVoltage.data.add(XYChart.Data(
+                                    desperateDot + currentTestItem!!.timesViu[i],
                                     currentTestItem!!.voltageViu[i + 1]))
                         }
                         desperateDot += currentTestItem!!.timesViu[i]
@@ -360,9 +364,11 @@ class MainViewController : Statable {
                 if (currentTestItem!!.voltageViuDC.isNotEmpty()) {
                     seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageViuDC[0]))
                     for (i in 0 until currentTestItem!!.timesViuDC.size) {
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i]))
+                        seriesTimesAndVoltage.data.add(XYChart.Data(
+                                desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i]))
                         if (i != currentTestItem!!.timesViuDC.size - 1) {
-                            seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i + 1]))
+                            seriesTimesAndVoltage.data.add(XYChart.Data(
+                                    desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i + 1]))
                         }
                         desperateDot += currentTestItem!!.timesViuDC[i]
                     }
@@ -370,7 +376,6 @@ class MainViewController : Statable {
             }
         }
         seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, 0))
-
         loadDiagram.data.addAll(seriesTimesAndVoltage)
     }
 
@@ -424,12 +429,10 @@ class MainViewController : Statable {
         dialogStage.isResizable = false
         val scene = Scene(page)
         dialogStage.scene = scene
-
         val controller = loader.getController<ProtocolSelectorController>()
         controller.setDialogStage(dialogStage)
 
         dialogStage.showAndWait()
-
         if (!controller.isCanceled) {
             mainModel.applyIntermediateProtocol()
             comboBoxTestItem.selectionModel.select(mainModel.currentProtocol.getObject())
@@ -560,9 +563,11 @@ class MainViewController : Statable {
         dialogStage.scene = scene
 
         dialogStage.setOnCloseRequest {
-            controller.flag = false
+            val communicationModel = CommunicationModel.getInstance()
+            communicationModel.finalizeAllDevices()
+            communicationModel.deleteObservers()
+            communicationModel.setDeviceStateOn(false)
         }
-
         dialogStage.showAndWait()
     }
 
@@ -606,8 +611,16 @@ class MainViewController : Statable {
         toIdleState()
     }
 
-    private fun startExperiment(): Boolean {
-        return startExperiment("layouts/experiment1View.fxml")
+    private fun startExperiment() {
+        if (radioResonance.isSelected) {
+            startExperiment("layouts/experiment1View.fxml")
+        }
+        if (radioViu.isSelected) {
+            startExperiment("layouts/experiment2View.fxml")
+        }
+        if (radioViuDC.isSelected) {
+            startExperiment("layouts/experiment3View.fxml")
+        }
     }
 
     private fun startExperiment(layout: String): Boolean {

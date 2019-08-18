@@ -6,4 +6,5 @@ public interface ExperimentController {
     void setDialogStage(Stage dialogStage);
 
     boolean isCanceled();
+
 }

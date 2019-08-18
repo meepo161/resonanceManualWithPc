@@ -8,8 +8,11 @@ import java.util.Observer;
 
 public class DeltaCP2000Controller implements DeviceController {
     private static final short ERRORS_REGISTER = 0x2100;
-    private static final short STATUS_REGISTER = 0x2101;
-    private static final short CURRENT_FREQUENCY_INPUT_REGISTER = 0x2103;
+    public static final short STATUS_REGISTER = 0x2101;
+    private static final short ENDS_STATUS_REGISTER = 0x041A;
+    public static final short END_UP_CONTROL_REGISTER = 0x0405;
+    public static final short END_DOWN_CONTROL_REGISTER = 0x0406;
+    public static final short CURRENT_FREQUENCY_INPUT_REGISTER = 0x2103;
     public static final short CONTROL_REGISTER = 0x2000;
     public static final short CURRENT_FREQUENCY_OUTPUT_REGISTER = 0x2001;
     public static final short MAX_FREQUENCY_REGISTER = 0x0100;
@@ -64,28 +67,55 @@ public class DeltaCP2000Controller implements DeviceController {
 
     @Override
     public void read(Object... args) {
-        ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
-        if (thereAreReadAttempts()) {
-            readAttempt--;
-            ModbusController.RequestStatus status = modbusController.readMultipleHoldingRegisters(
-                    address, ERRORS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
-            if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
-                model.setReadResponding(true);
-                model.setErrors(inputBuffer.getShort());
-                inputBuffer.getShort();
-                inputBuffer.getShort();
-                model.setCurrentFrequency(inputBuffer.getShort());
-                resetReadAttempts();
-                resetReadAttemptsOfAttempts();
+        int type = (int) args[0];
+        if (type == 0) {
+            ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+            if (thereAreReadAttempts()) {
+                readAttempt--;
+                ModbusController.RequestStatus status = modbusController.readMultipleHoldingRegisters(
+                        address, ERRORS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+                if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                    model.setReadResponding(true);
+                    model.setErrors(inputBuffer.getShort());
+                    model.setStatusVfd(inputBuffer.getShort());
+                    inputBuffer.getShort();
+                    model.setCurrentFrequency(inputBuffer.getShort());
+                    resetReadAttempts();
+                    resetReadAttemptsOfAttempts();
+                } else {
+                    read(args);
+                }
             } else {
-                read(args);
+                readAttemptOfAttempt--;
+                if (readAttemptOfAttempt <= 0) {
+                    model.setReadResponding(false);
+                } else {
+                    resetReadAttempts();
+                }
             }
-        } else {
-            readAttemptOfAttempt--;
-            if (readAttemptOfAttempt <= 0) {
-                model.setReadResponding(false);
+        } else if (type == 1) {
+            ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+            if (thereAreReadAttempts()) {
+                readAttempt--;
+                ModbusController.RequestStatus status = modbusController.readMultipleHoldingRegisters(
+                        address, ENDS_STATUS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+                if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                    model.setEndsStatus(inputBuffer.getShort());
+                    inputBuffer.getShort();
+                    inputBuffer.getShort();
+                    inputBuffer.getShort();
+                    resetReadAttempts();
+                    resetReadAttemptsOfAttempts();
+                } else {
+                    read(args);
+                }
             } else {
-                resetReadAttempts();
+                readAttemptOfAttempt--;
+                if (readAttemptOfAttempt <= 0) {
+                    model.setReadResponding(false);
+                } else {
+                    resetReadAttempts();
+                }
             }
         }
     }

@@ -8,6 +8,8 @@ public class DeltaCP2000Model extends Observable {
     public static final int ERROR1_PARAM = 1;
     public static final int ERROR2_PARAM = 2;
     public static final int CURRENT_FREQUENCY_PARAM = 3;
+    public static final int ENDS_STATUS_PARAM = 4;
+    public static final int STATUS_VFD = 5;
 
     private int deviceID;
     private boolean readResponding;
@@ -19,7 +21,7 @@ public class DeltaCP2000Model extends Observable {
     }
 
 
- void resetResponding() {
+    void resetResponding() {
         readResponding = true;
         writeResponding = true;
     }
@@ -38,6 +40,13 @@ public class DeltaCP2000Model extends Observable {
         notice(RESPONDING_PARAM, readResponding && writeResponding);
     }
 
+    void setEndsStatus(short endsStatus) {
+        notice(ENDS_STATUS_PARAM, endsStatus);
+    }
+
+    void setStatusVfd(short statusVFD) {
+        notice(STATUS_VFD, statusVFD);
+    }
 
     void setErrors(short errors) {
         notice(ERROR1_PARAM, (short) ((errors >> 8) & 0xFF));

@@ -81,6 +81,18 @@ public class AvemVoltmeterController implements DeviceController {
     public void write(Object... args) {
     }
 
+    private byte[] intToByteArray(int i) {
+        ByteBuffer convertBuffer = ByteBuffer.allocate(4);
+        convertBuffer.clear();
+        return convertBuffer.putInt(i).array();
+    }
+
+    private byte[] floatToByteArray(float f) {
+        ByteBuffer convertBuffer = ByteBuffer.allocate(4);
+        convertBuffer.clear();
+        return convertBuffer.putFloat(f).array();
+    }
+
     @Override
     public boolean thereAreReadAttempts() {
         return readAttempt > 0;

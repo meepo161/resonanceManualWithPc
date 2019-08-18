@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Experiment1Model {
+public class Experiment2Model {
 
     private final StringProperty voltage;
     private final StringProperty currentA;
@@ -20,7 +20,7 @@ public class Experiment1Model {
     private ArrayList<StringProperty> protocol = new ArrayList<>();
 
 
-    public Experiment1Model() {
+    public Experiment2Model() {
         voltage = new SimpleStringProperty("");
         currentA = new SimpleStringProperty("");
         currentB = new SimpleStringProperty("");
@@ -38,7 +38,7 @@ public class Experiment1Model {
                 result));
     }
 
-    public Experiment1Model(
+    public Experiment2Model(
             String voltage, String currentA, String currentB, String currentC, String currentLeak, String frequency, String result) {
         this.voltage = new SimpleStringProperty(voltage);
         this.currentA = new SimpleStringProperty(currentA);

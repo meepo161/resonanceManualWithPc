@@ -14,8 +14,8 @@ class LogAnalyzer {
     static void addSuccess() {
         sSuccess++;
         DateFormat df = new SimpleDateFormat("mm:ss");
-        System.out.printf(
-                "%s Записано: %d, Удач: %d, Разница: %d, Процент: %.4f\n",
-                df.format(System.currentTimeMillis()), sWrite, sSuccess, sWrite - sSuccess, (sWrite - sSuccess) / (float) sWrite);
+//        System.out.printf(
+//                "%s Записано: %d, Удач: %d, Разница: %d, Процент: %.4f\n",
+//                df.format(System.currentTimeMillis()), sWrite, sSuccess, sWrite - sSuccess, (sWrite - sSuccess) / (float) sWrite);
     }
 }
