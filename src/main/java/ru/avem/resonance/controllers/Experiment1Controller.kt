@@ -109,9 +109,9 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     @Volatile
     private var measuringU: Float = 0.0f
     @Volatile
-    private var measuringIAvem: Float = 0.0f
+    private var measuringULatr: Float = 0.0f
     @Volatile
-    private var measuringUKiloAvem: Float = 0.0f
+    private var measuringIAvem: Float = 0.0f
     @Volatile
     private var measuringIA: Double = 0.0
     @Volatile
@@ -148,7 +148,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private val isDevicesResponding: Boolean
         get() = isOwenPRResponding && isAvemResponding && isDeltaResponding && isLatrResponding
-                && isParmaResponding
+                && isParmaResponding && isKiloAvemResponding
 
     private val points = ArrayList<Point>()
 
@@ -249,6 +249,8 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
         Thread {
             if (isExperimentRunning) {
+                appendOneMessageToLog("Визуально осматривайте трансфоматор на наличие потеков масла перед каждым опытом")
+                communicationModel.initOwenPrController()
                 appendOneMessageToLog("Начало испытания")
                 communicationModel.initExperimentDevices()
                 sleep(4000)
@@ -258,6 +260,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
                 appendOneMessageToLog("Запускаем ЧП")
+                communicationModel.onPRO4()
                 resetOmik()
             }
 
@@ -267,6 +270,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Поднимаем напряжение на объекте испытания до $firstVoltageLatr")
                 communicationModel.startUpLATR(firstVoltageLatr, true)
                 waitingLatrCoarse(firstVoltageLatr)
+                if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
+                    setCause("Коэфицент трансформации сильно отличается")
+                }
+
             }
 
             if (isExperimentRunning) {
@@ -281,12 +288,14 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     if (isExperimentRunning && isDevicesResponding) {
                         appendOneMessageToLog("Началась регулировка")
                         communicationModel.startUpLATR((voltageList[i] / coef).toFloat(), false)
-                        waitingLatrCoarse((voltageList[i]).toFloat())
-                        fineLatrCoarse((voltageList[i]).toFloat())
+                        waitingLatrCoarse(voltageList[i].toFloat())
+                        fineLatrCoarse(voltageList[i].toFloat())
+                        if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
+                            setCause("Коэфицент трансформации сильно отличается")
+                        }
                         appendOneMessageToLog("Регулировка окончена")
                     }
                     val time = timeList[i] * MILLS_IN_SEC
-
                     while (isExperimentRunning && timePassed < time) {
                         sleep(100)
                         timePassed += 100.0
@@ -298,6 +307,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
             isNeedToRefresh = false
             communicationModel.startUpLATR(1f, true)
+            while (measuringU > 600) {
+                sleep(10)
+            }
+            communicationModel.stopLATR()
             resetOmik()
             communicationModel.stopObject()
             sleep(3000)
@@ -369,9 +382,12 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         communicationModel.stopObject()
         sleep(3000)
         communicationModel.changeRotation()
+        communicationModel.setObjectParams(25 * 100, 380 * 10, 25 * 100)
         communicationModel.startObject()
-        sleep(2000)
-        while (measuringU > biggerU * 1.05) {
+        while (measuringU * 1.05 < biggerU || measuringIC > smallerI * 1.05) {
+            if (statusEndsVFD == OMIK_DOWN_END) {
+                setCause("Не удалось подобрать резонанс")
+            }
             sleep(10)
         }
         communicationModel.stopObject()
@@ -383,37 +399,51 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         appendOneMessageToLog("Грубая регулировка")
         var isLatrCoarseReady = false
         while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage * 0.95 && measuringU < voltage * 1.05) {
+            if (measuringU > voltage * 0.85 && measuringU < voltage * 1.15) {
                 isLatrCoarseReady = true
+            } else if (measuringU < voltage * 0.85) {
+                communicationModel.startUpLATR(380f, false)
+            } else if (measuringU > voltage * 1.15) {
+                communicationModel.startUpLATR(1f, false)
             }
-            sleep(10)
         }
         communicationModel.stopLATR()
         appendOneMessageToLog("Грубая регулировка окончена")
     }
 
     private fun fineLatrCoarse(voltage: Float) {
-        while (measuringU <= voltage * 0.99 && measuringU >= voltage * 1.01 && isExperimentRunning) {
-            appendOneMessageToLog("Точная регулировка")
-            if (measuringU <= voltage * 0.99) {
-                appendMessageToLog("Accurate UP")
+        appendOneMessageToLog("Точная регулировка")
+        while ((measuringU <= voltage * 0.91 || measuringU >= voltage * 1.09) && isExperimentRunning) {
+            if (measuringU <= voltage * 0.91) {
+                communicationModel.startUpLATR(380f, false)
+                sleep(2000)
+                communicationModel.stopLATR()
+            } else if (measuringU >= voltage * 1.09) {
+                communicationModel.startUpLATR(1f, false)
+                sleep(2000)
+                communicationModel.stopLATR()
+            }
+        }
+        while ((measuringU <= voltage * 0.97 || measuringU >= voltage * 1.03) && isExperimentRunning) {
+            if (measuringU <= voltage * 0.97) {
                 communicationModel.startUpLATR(380f, false)
                 sleep(1500)
                 communicationModel.stopLATR()
-            } else if (measuringU >= voltage * 1.01) {
-                appendMessageToLog("Accurate DOWN")
+            } else if (measuringU >= voltage * 1.03) {
                 communicationModel.startUpLATR(1f, false)
                 sleep(1500)
                 communicationModel.stopLATR()
             }
         }
+        appendOneMessageToLog("Точная регулировка закончена")
         communicationModel.stopLATR()
     }
 
     private fun resetOmik() {
-        if (statusEndsVFD != OMIK_DOWN_END && isExperimentRunning && isDevicesResponding) {
+        communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
+        if (statusEndsVFD != OMIK_DOWN_END && isDevicesResponding) {
             appendOneMessageToLog("Возвращаем магнитопровод в исходное состояние")
-            if (statusVFD != VFD_REVERSE && isExperimentRunning && isDevicesResponding) {
+            if (statusVFD != VFD_REVERSE && isDevicesResponding) {
                 communicationModel.changeRotation()
             }
             communicationModel.startObject()
@@ -421,9 +451,9 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             while (isExperimentRunning && isDevicesResponding && (waitingTime-- > 0)) {
                 sleep(100)
             }
-            while (statusEndsVFD != OMIK_DOWN_END && isExperimentRunning && isDevicesResponding) {
+            while (statusEndsVFD != OMIK_DOWN_END && isDevicesResponding) {
                 sleep(10)
-                if (statusEndsVFD == OMIK_UP_END && isExperimentRunning && isDevicesResponding) {
+                if (statusEndsVFD == OMIK_UP_END && isDevicesResponding) {
                     setCause("Омик в верхнем положенении, двигаясь вниз")
                 }
             }
@@ -494,18 +524,27 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 }
                 ParmaT400Model.IA_PARAM -> {
                     measuringIA = value as Double * 16
-                    val IA = String.format("%.2f", measuringIA)
+                    val IA = String.format("%.4f", measuringIA)
                     experiment1Model!!.currentA = IA
+                    if (measuringIA > 45) {
+                        appendMessageToLog("Ток А превышает 45А")
+                    }
                 }
                 ParmaT400Model.IB_PARAM -> {
                     measuringIB = value as Double * 2
-                    val IB = String.format("%.2f", measuringIB)
+                    val IB = String.format("%.4f", measuringIB)
                     experiment1Model!!.currentB = IB
+                    if (measuringIB > 45) {
+                        appendMessageToLog("Ток B превышает 45А")
+                    }
                 }
                 ParmaT400Model.IC_PARAM -> {
                     measuringIC = value as Double * 16
-                    val IC = String.format("%.6f", measuringIC)
+                    val IC = String.format("%.4f", measuringIC)
                     experiment1Model!!.currentC = IC
+                    if (measuringIC > 45) {
+                        appendMessageToLog("Ток C превышает 45А")
+                    }
                 }
                 ParmaT400Model.F_PARAM -> {
                     measuringF = value as Double
@@ -541,7 +580,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 }
                 AvemVoltmeterModel.U_PARAM -> {
                     measuringIAvem = value as Float
-                    val IAvem = String.format("%.5f", measuringIAvem)
+                    val IAvem = String.format("%.4f", measuringIAvem)
                     experiment1Model!!.currentLeak = IAvem
                 }
             }
@@ -568,11 +607,9 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     checkLatrError()
                     checkLatrStatus()
                 }
-//                LatrModel.U_PARAM -> {
-//                    measuringU = (value as Float)
-//                    val uLatr = String.format("%.2f", measuringU * coef)
-//                    experiment1Model!!.voltage = uLatr
-//                }
+                LatrModel.U_PARAM -> {
+                    measuringULatr = (value as Float) * 102
+                }
             }
         }
     }

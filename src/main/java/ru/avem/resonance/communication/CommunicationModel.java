@@ -321,6 +321,10 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.write(START_STOP_REGISTER, 1);
     }
 
+    public void startLATR(){
+        latrController.write(START_STOP_REGISTER, 1);
+    }
+
     public void stopLATR() {
         latrController.write(START_STOP_REGISTER, 0);
     }
