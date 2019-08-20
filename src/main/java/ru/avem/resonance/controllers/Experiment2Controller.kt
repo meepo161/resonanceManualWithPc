@@ -271,7 +271,7 @@ class Experiment2Controller : DeviceState(), ExperimentController {
             }
 
             if (isExperimentRunning) {
-                communicationModel.startUpLATR((voltageList[0] / coef).toFloat(), true)
+                communicationModel.startUpLATRFast((voltageList[0] / coef).toFloat(), true)
             }
 
             var timeSum = 0.0
@@ -281,7 +281,7 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                     var timePassed = 0.0
                     if (isExperimentRunning && isDevicesResponding) {
                         appendOneMessageToLog("Началась регулировка")
-                        communicationModel.startUpLATR((voltageList[i] / coef).toFloat(), false)
+                        communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
                         appendOneMessageToLog(((voltageList[i] / coef).toFloat()).toString())
                         waitingLatrCoarse(voltageList[i].toFloat())
                         fineLatrCoarse(voltageList[i].toFloat())
@@ -301,7 +301,7 @@ class Experiment2Controller : DeviceState(), ExperimentController {
             }
 
             isNeedToRefresh = false
-            communicationModel.startUpLATR(1f, true)
+            communicationModel.startUpLATRFast(1f, true)
             while (measuringU > 600) {
                 sleep(10)
             }
@@ -369,11 +369,11 @@ class Experiment2Controller : DeviceState(), ExperimentController {
         appendOneMessageToLog("Точная регулировка")
         while ((measuringU <= voltage * 0.91 || measuringU >= voltage * 1.09) && isExperimentRunning) {
             if (measuringU <= voltage * 0.91) {
-                communicationModel.startUpLATR(380f, false)
+                communicationModel.startUpLATRFast(380f, false)
                 sleep(1500)
                 communicationModel.stopLATR()
             } else if (measuringU >= voltage * 1.09) {
-                communicationModel.startUpLATR(1f, false)
+                communicationModel.startUpLATRFast(1f, false)
                 sleep(1500)
                 communicationModel.stopLATR()
             }
@@ -381,11 +381,11 @@ class Experiment2Controller : DeviceState(), ExperimentController {
         while ((measuringU <= voltage * 0.97 || measuringU >= voltage * 1.03) && isExperimentRunning) {
             sleep(1000)
             if (measuringU <= voltage * 0.97) {
-                communicationModel.startUpLATR(380f, false)
+                communicationModel.startUpLATRFast(380f, false)
                 sleep(1250)
                 communicationModel.stopLATR()
             } else if (measuringU >= voltage * 1.03) {
-                communicationModel.startUpLATR(1f, false)
+                communicationModel.startUpLATRFast(1f, false)
                 sleep(1250)
                 communicationModel.stopLATR()
             }

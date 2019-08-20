@@ -254,7 +254,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Начало испытания")
                 communicationModel.initExperimentDevices()
                 sleep(4000)
+                communicationModel.startUpLATRFast(380f, true)
             }
+
+
 
             if (isExperimentRunning) {
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
@@ -268,7 +271,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 communicationModel.onPRO3()
                 sleep(1000)
                 appendOneMessageToLog("Поднимаем напряжение на объекте испытания до $firstVoltageLatr")
-                communicationModel.startUpLATR(firstVoltageLatr, true)
+                communicationModel.startUpLATRFast(firstVoltageLatr, true)
                 waitingLatrCoarse(firstVoltageLatr)
                 if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
                     setCause("Коэфицент трансформации сильно отличается")
@@ -287,7 +290,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     var timePassed = 0.0
                     if (isExperimentRunning && isDevicesResponding) {
                         appendOneMessageToLog("Началась регулировка")
-                        communicationModel.startUpLATR((voltageList[i] / coef).toFloat(), false)
+                        communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
                         waitingLatrCoarse(voltageList[i].toFloat())
                         fineLatrCoarse(voltageList[i].toFloat())
                         if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
@@ -306,7 +309,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             }
 
             isNeedToRefresh = false
-            communicationModel.startUpLATR(1f, true)
+            communicationModel.startUpLATRFast(1f, true)
             while (measuringU > 600) {
                 sleep(10)
             }
@@ -399,12 +402,23 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         appendOneMessageToLog("Грубая регулировка")
         var isLatrCoarseReady = false
         while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage * 0.85 && measuringU < voltage * 1.15) {
+            if (measuringU > voltage - 2000 && measuringU < voltage + 2000) {
                 isLatrCoarseReady = true
-            } else if (measuringU < voltage * 0.85) {
-                communicationModel.startUpLATR(380f, false)
-            } else if (measuringU > voltage * 1.15) {
-                communicationModel.startUpLATR(1f, false)
+            } else if (measuringU < voltage - 2000) {
+                communicationModel.startUpLATRFast(380f, false)
+            } else if (measuringU > voltage + 2000) {
+                communicationModel.startUpLATRFast(1f, false)
+            }
+        }
+        communicationModel.stopLATR()
+        isLatrCoarseReady = false
+        while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
+            if (measuringU > voltage - 500 && measuringU < voltage + 500) {
+                isLatrCoarseReady = true
+            } else if (measuringU < voltage - 500) {
+                communicationModel.startUpLATRSlow(380f, false)
+            } else if (measuringU > voltage + 500) {
+                communicationModel.startUpLATRSlow(1f, false)
             }
         }
         communicationModel.stopLATR()
@@ -413,24 +427,24 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private fun fineLatrCoarse(voltage: Float) {
         appendOneMessageToLog("Точная регулировка")
-        while ((measuringU <= voltage * 0.91 || measuringU >= voltage * 1.09) && isExperimentRunning) {
-            if (measuringU <= voltage * 0.91) {
-                communicationModel.startUpLATR(380f, false)
+        while ((measuringU <= voltage - 500 || measuringU >= voltage + 500) && isExperimentRunning) {
+            if (measuringU <= voltage - 500) {
+                communicationModel.startUpLATRFast(380f, false)
                 sleep(2000)
                 communicationModel.stopLATR()
-            } else if (measuringU >= voltage * 1.09) {
-                communicationModel.startUpLATR(1f, false)
+            } else if (measuringU >= voltage + 500) {
+                communicationModel.startUpLATRFast(1f, false)
                 sleep(2000)
                 communicationModel.stopLATR()
             }
         }
-        while ((measuringU <= voltage * 0.97 || measuringU >= voltage * 1.03) && isExperimentRunning) {
-            if (measuringU <= voltage * 0.97) {
-                communicationModel.startUpLATR(380f, false)
+        while ((measuringU <= voltage - 150 || measuringU >= voltage + 150) && isExperimentRunning) {
+            if (measuringU <= voltage - 150) {
+                communicationModel.startUpLATRFast(380f, false)
                 sleep(1500)
                 communicationModel.stopLATR()
-            } else if (measuringU >= voltage * 1.03) {
-                communicationModel.startUpLATR(1f, false)
+            } else if (measuringU >= voltage + 150) {
+                communicationModel.startUpLATRFast(1f, false)
                 sleep(1500)
                 communicationModel.stopLATR()
             }

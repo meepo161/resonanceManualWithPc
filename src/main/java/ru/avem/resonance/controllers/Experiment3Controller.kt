@@ -261,7 +261,7 @@ class Experiment3Controller : DeviceState(), ExperimentController {
 
             if (isExperimentRunning && isDevicesResponding) {
                 appendOneMessageToLog("Поднимаем напряжение на объекте испытания")
-                communicationModel.startUpLATR(firstVoltageLatr, true)
+                communicationModel.startUpLATRFast(firstVoltageLatr, true)
                 waitingLatrCoarse()
             }
 
