@@ -81,7 +81,7 @@ public class CommunicationModel extends Observable implements Observer {
                                 deviceController.read(i);
                             }
                         } else if (deviceController instanceof ParmaT400Controller) {
-                            for (int i = 1; i <= 4; i++) {
+                            for (int i = 1; i <= 3; i++) {
                                 deviceController.read(i);
                             }
                         } else if (deviceController instanceof DeltaCP2000Controller) {
@@ -291,14 +291,14 @@ public class CommunicationModel extends Observable implements Observer {
         voltage *= 1.1f;
         int minDutty = 400;
         int maxDutty = 200;
-        float corridor = 0.1f;
+        float corridor = 0.25f;
         float delta = 0.02f;
         int timeMinPulse = 50;
         int timeMaxPulse = 300;
-        float timeMinPulsePercent = 80.0f;
-        float timeMaxPulsePercent = 50.0f;
-        float minDuttyPercent = 80.0f;
-        float maxDuttyPercent = 90.0f;
+        float timeMinPulsePercent = 70.0f;
+        float timeMaxPulsePercent = 40.0f;
+        float minDuttyPercent = 50.0f;
+        float maxDuttyPercent = 60.0f;
         float timeMinPeriod = 10.0f;
         float timeMaxPeriod = 100.0f;
         float minVoltage = 200f;
@@ -329,14 +329,14 @@ public class CommunicationModel extends Observable implements Observer {
         voltage *= 1.1f;
         int minDutty = 400;
         int maxDutty = 200;
-        float corridor = 0.05f;
+        float corridor = 0.4f;
         float delta = 0.02f;
         int timeMinPulse = 50;
         int timeMaxPulse = 300;
-        float timeMinPulsePercent = 80.0f;
-        float timeMaxPulsePercent = 50.0f;
-        float minDuttyPercent = 40.0f;
-        float maxDuttyPercent = 45.0f;
+        float timeMinPulsePercent = 50.0f;
+        float timeMaxPulsePercent = 20.0f;
+        float minDuttyPercent = 20.0f;
+        float maxDuttyPercent = 22.0f;
         float timeMinPeriod = 10.0f;
         float timeMaxPeriod = 100.0f;
         float minVoltage = 200f;
@@ -359,7 +359,7 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.write(START_STOP_REGISTER, 1);
     }
 
-    public void startLATR(){
+    public void startLATR() {
         latrController.write(START_STOP_REGISTER, 1);
     }
 
@@ -382,7 +382,11 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.resetAllAttempts();
         deltaCP2000Controller.setNeedToRead(true);
         deltaCP2000Controller.resetAllAttempts();
+    }
 
+    public void initLatrOnly() {
+        latrController.setNeedToRead(true);
+        latrController.resetAllAttempts();
     }
 
     public void onPRO1() {

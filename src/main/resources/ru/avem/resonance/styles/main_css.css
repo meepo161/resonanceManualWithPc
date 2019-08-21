@@ -10,3 +10,21 @@
 .table-column {
 	-fx-alignment: CENTER;
 }
+
+.table-cell {
+     -fx-text-alignment: CENTER;
+}
+
+.table-row-cell {
+    -fx-cell-size: 50px;
+}
+
+.table-column > .text {
+    -fx-font-weight: bold;
+    -fx-font-size: 14;
+}
+
+.text-area {
+    -fx-font-weight: bold;
+    -fx-font-size: 14;
+ }

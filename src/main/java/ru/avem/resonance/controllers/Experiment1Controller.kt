@@ -121,6 +121,8 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     @Volatile
     private var isSchemeReady: Boolean = false
     @Volatile
+    private var isStartButtonOn: Boolean = false
+    @Volatile
     private var measuringF: Double = 0.0
 
     @Volatile
@@ -202,7 +204,6 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private fun fillProtocolExperimentFields() {
         val currentProtocol = mainModel.currentProtocol
-        // TODO
     }
 
     @FXML
@@ -254,10 +255,15 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Начало испытания")
                 communicationModel.initExperimentDevices()
                 sleep(4000)
-                communicationModel.startUpLATRFast(380f, true)
             }
 
+            while (isExperimentRunning && !isStartButtonOn) {
+                appendOneMessageToLog("Включите кнопочный пост")
+                sleep(10)
+            }
 
+            appendOneMessageToLog("Кнопочный пост включен")
+            sleep(99999)
 
             if (isExperimentRunning) {
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
@@ -270,7 +276,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             if (isExperimentRunning) {
                 communicationModel.onPRO3()
                 sleep(1000)
-                appendOneMessageToLog("Поднимаем напряжение на объекте испытания до $firstVoltageLatr")
+                appendOneMessageToLog("Поднимаем напряжение на объекте испытания для поиска резонанса")
                 communicationModel.startUpLATRFast(firstVoltageLatr, true)
                 waitingLatrCoarse(firstVoltageLatr)
                 if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
@@ -310,7 +316,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
             isNeedToRefresh = false
             communicationModel.startUpLATRFast(1f, true)
-            while (measuringU > 600) {
+            while (measuringU > 800) {
                 sleep(10)
             }
             communicationModel.stopLATR()
@@ -402,54 +408,47 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         appendOneMessageToLog("Грубая регулировка")
         var isLatrCoarseReady = false
         while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage - 2000 && measuringU < voltage + 2000) {
+            if (measuringU > voltage - 1000 && measuringU < voltage + 750) {
                 isLatrCoarseReady = true
-            } else if (measuringU < voltage - 2000) {
+            } else if (measuringU < voltage - 1000) {
                 communicationModel.startUpLATRFast(380f, false)
-            } else if (measuringU > voltage + 2000) {
+            } else if (measuringU > voltage + 750) {
                 communicationModel.startUpLATRFast(1f, false)
             }
         }
         communicationModel.stopLATR()
+
         isLatrCoarseReady = false
         while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage - 500 && measuringU < voltage + 500) {
+            if (measuringU > voltage - 300 && measuringU < voltage + 300) {
                 isLatrCoarseReady = true
-            } else if (measuringU < voltage - 500) {
+            } else if (measuringU < voltage - 300) {
                 communicationModel.startUpLATRSlow(380f, false)
-            } else if (measuringU > voltage + 500) {
+            } else if (measuringU > voltage + 300) {
                 communicationModel.startUpLATRSlow(1f, false)
             }
         }
         communicationModel.stopLATR()
+
         appendOneMessageToLog("Грубая регулировка окончена")
     }
 
     private fun fineLatrCoarse(voltage: Float) {
         appendOneMessageToLog("Точная регулировка")
-        while ((measuringU <= voltage - 500 || measuringU >= voltage + 500) && isExperimentRunning) {
-            if (measuringU <= voltage - 500) {
-                communicationModel.startUpLATRFast(380f, false)
-                sleep(2000)
-                communicationModel.stopLATR()
-            } else if (measuringU >= voltage + 500) {
-                communicationModel.startUpLATRFast(1f, false)
-                sleep(2000)
-                communicationModel.stopLATR()
-            }
-        }
+        sleep(2000)
         while ((measuringU <= voltage - 150 || measuringU >= voltage + 150) && isExperimentRunning) {
             if (measuringU <= voltage - 150) {
                 communicationModel.startUpLATRFast(380f, false)
-                sleep(1500)
+                sleep(1750)
                 communicationModel.stopLATR()
             } else if (measuringU >= voltage + 150) {
                 communicationModel.startUpLATRFast(1f, false)
-                sleep(1500)
+                sleep(1750)
                 communicationModel.stopLATR()
             }
         }
         appendOneMessageToLog("Точная регулировка закончена")
+
         communicationModel.stopLATR()
     }
 
@@ -528,6 +527,9 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 OwenPRModel.RESPONDING_PARAM -> {
                     isOwenPRResponding = value as Boolean
                     Platform.runLater { deviceStateCirclePR200.fill = if (value) Color.LIME else Color.RED }
+                }
+                OwenPRModel.PRI1 -> {
+                    isStartButtonOn = value as Boolean
                 }
             }
 

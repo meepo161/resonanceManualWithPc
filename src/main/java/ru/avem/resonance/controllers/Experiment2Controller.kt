@@ -257,11 +257,11 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
                 appendOneMessageToLog("Запускаем ЧП")
+                communicationModel.onPRO4()
                 resetOmik()
             }
 
             if (isExperimentRunning) {
-                communicationModel.onPRO4()
                 communicationModel.onPRO3()
 //                appendOneMessageToLog("Поднимаем напряжение на объекте испытания до $firstVoltageLatr")
 //                communicationModel.startUpLATR(firstVoltageLatr, true)
@@ -282,7 +282,6 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                     if (isExperimentRunning && isDevicesResponding) {
                         appendOneMessageToLog("Началась регулировка")
                         communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
-                        appendOneMessageToLog(((voltageList[i] / coef).toFloat()).toString())
                         waitingLatrCoarse(voltageList[i].toFloat())
                         fineLatrCoarse(voltageList[i].toFloat())
                         if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
@@ -302,16 +301,16 @@ class Experiment2Controller : DeviceState(), ExperimentController {
 
             isNeedToRefresh = false
             communicationModel.startUpLATRFast(1f, true)
-            while (measuringU > 600) {
+            while (measuringU > 800) {
                 sleep(10)
             }
             communicationModel.stopLATR()
             resetOmik()
             communicationModel.stopObject()
-            isNeedToRefresh = false
-            communicationModel.offAllKms() //разбираем все возможные схемы
+            sleep(3000)
+            communicationModel.offAllKms()
             sleep(50)
-            communicationModel.finalizeAllDevices() //прекращаем опрашивать устройства
+            communicationModel.finalizeAllDevices()
 
             if (cause != "") {
                 appendMessageToLog(String.format("Испытание прервано по причине: %s", cause))
@@ -356,37 +355,42 @@ class Experiment2Controller : DeviceState(), ExperimentController {
         appendOneMessageToLog("Грубая регулировка")
         var isLatrCoarseReady = false
         while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage * 0.85 && measuringU < voltage * 1.09) {
+            if (measuringU > voltage - 1000 && measuringU < voltage + 750) {
                 isLatrCoarseReady = true
+            } else if (measuringU < voltage - 1000) {
+                communicationModel.startUpLATRFast(380f, false)
+            } else if (measuringU > voltage + 750) {
+                communicationModel.startUpLATRFast(1f, false)
             }
-            sleep(10)
         }
         communicationModel.stopLATR()
+
+        isLatrCoarseReady = false
+        while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
+            if (measuringU > voltage - 300 && measuringU < voltage + 300) {
+                isLatrCoarseReady = true
+            } else if (measuringU < voltage - 300) {
+                communicationModel.startUpLATRSlow(380f, false)
+            } else if (measuringU > voltage + 300) {
+                communicationModel.startUpLATRSlow(1f, false)
+            }
+        }
+        communicationModel.stopLATR()
+
         appendOneMessageToLog("Грубая регулировка окончена")
     }
 
     private fun fineLatrCoarse(voltage: Float) {
         appendOneMessageToLog("Точная регулировка")
-        while ((measuringU <= voltage * 0.91 || measuringU >= voltage * 1.09) && isExperimentRunning) {
-            if (measuringU <= voltage * 0.91) {
+        sleep(2000)
+        while ((measuringU <= voltage - 150 || measuringU >= voltage + 150) && isExperimentRunning) {
+            if (measuringU <= voltage - 150) {
                 communicationModel.startUpLATRFast(380f, false)
-                sleep(1500)
+                sleep(1750)
                 communicationModel.stopLATR()
-            } else if (measuringU >= voltage * 1.09) {
+            } else if (measuringU >= voltage + 150) {
                 communicationModel.startUpLATRFast(1f, false)
-                sleep(1500)
-                communicationModel.stopLATR()
-            }
-        }
-        while ((measuringU <= voltage * 0.97 || measuringU >= voltage * 1.03) && isExperimentRunning) {
-            sleep(1000)
-            if (measuringU <= voltage * 0.97) {
-                communicationModel.startUpLATRFast(380f, false)
-                sleep(1250)
-                communicationModel.stopLATR()
-            } else if (measuringU >= voltage * 1.03) {
-                communicationModel.startUpLATRFast(1f, false)
-                sleep(1250)
+                sleep(1750)
                 communicationModel.stopLATR()
             }
         }
@@ -406,13 +410,15 @@ class Experiment2Controller : DeviceState(), ExperimentController {
 //            }
 //        }
         appendOneMessageToLog("Точная регулировка закончена")
+
         communicationModel.stopLATR()
     }
 
     private fun resetOmik() {
-        if (statusEndsVFD != OMIK_DOWN_END && isExperimentRunning && isDevicesResponding) {
+        communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
+        if (statusEndsVFD != OMIK_DOWN_END && isDevicesResponding) {
             appendOneMessageToLog("Возвращаем магнитопровод в исходное состояние")
-            if (statusVFD != VFD_REVERSE && isExperimentRunning && isDevicesResponding) {
+            if (statusVFD != VFD_REVERSE && isDevicesResponding) {
                 communicationModel.changeRotation()
             }
             communicationModel.startObject()
@@ -420,9 +426,9 @@ class Experiment2Controller : DeviceState(), ExperimentController {
             while (isExperimentRunning && isDevicesResponding && (waitingTime-- > 0)) {
                 sleep(100)
             }
-            while (statusEndsVFD != OMIK_DOWN_END && isExperimentRunning && isDevicesResponding) {
+            while (statusEndsVFD != OMIK_DOWN_END && isDevicesResponding) {
                 sleep(10)
-                if (statusEndsVFD == OMIK_UP_END && isExperimentRunning && isDevicesResponding) {
+                if (statusEndsVFD == OMIK_UP_END && isDevicesResponding) {
                     setCause("Омик в верхнем положенении, двигаясь вниз")
                 }
             }
