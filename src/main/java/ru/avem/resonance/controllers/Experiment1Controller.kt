@@ -262,9 +262,6 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 sleep(10)
             }
 
-            appendOneMessageToLog("Кнопочный пост включен")
-            sleep(99999)
-
             if (isExperimentRunning) {
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
@@ -435,7 +432,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private fun fineLatrCoarse(voltage: Float) {
         appendOneMessageToLog("Точная регулировка")
-        sleep(2000)
+        sleep(1000)
         while ((measuringU <= voltage - 150 || measuringU >= voltage + 150) && isExperimentRunning) {
             if (measuringU <= voltage - 150) {
                 communicationModel.startUpLATRFast(380f, false)

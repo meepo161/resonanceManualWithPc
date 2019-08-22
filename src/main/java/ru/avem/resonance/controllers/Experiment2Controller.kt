@@ -121,6 +121,8 @@ class Experiment2Controller : DeviceState(), ExperimentController {
     @Volatile
     private var isSchemeReady: Boolean = false
     @Volatile
+    private var isStartButtonOn: Boolean = false
+    @Volatile
     private var measuringF: Double = 0.0
 
     @Volatile
@@ -199,7 +201,6 @@ class Experiment2Controller : DeviceState(), ExperimentController {
 
     private fun fillProtocolExperimentFields() {
         val currentProtocol = mainModel.currentProtocol
-        // TODO
     }
 
     @FXML
@@ -251,6 +252,11 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Начало испытания")
                 communicationModel.initExperimentDevices()
                 sleep(4000)
+            }
+
+            while (isExperimentRunning && !isStartButtonOn) {
+                appendOneMessageToLog("Включите кнопочный пост")
+                sleep(10)
             }
 
             if (isExperimentRunning) {
@@ -489,6 +495,9 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                 OwenPRModel.RESPONDING_PARAM -> {
                     isOwenPRResponding = value as Boolean
                     Platform.runLater { deviceStateCirclePR200.fill = if (value) Color.LIME else Color.RED }
+                }
+                OwenPRModel.PRI1 -> {
+                    isStartButtonOn = value as Boolean
                 }
             }
 
