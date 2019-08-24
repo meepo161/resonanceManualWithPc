@@ -20,6 +20,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import static ru.avem.resonance.communication.devices.DeviceController.*;
+import static ru.avem.resonance.communication.devices.avem_voltmeter.AvemVoltmeterController.CHANGE_SHOW_VALUE;
 import static ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Controller.*;
 import static ru.avem.resonance.communication.devices.latr.LatrController.*;
 import static ru.avem.resonance.communication.devices.pr200.OwenPRController.*;
@@ -274,7 +275,6 @@ public class CommunicationModel extends Observable implements Observer {
         deltaCP2000Controller.write(END_DOWN_CONTROL_REGISTER, 1, paramEndDown);
     }
 
-
     public void setObjectFCur(int fCur) {
         deltaCP2000Controller.write(CURRENT_FREQUENCY_OUTPUT_REGISTER, 1, fCur);
     }
@@ -367,6 +367,9 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.write(START_STOP_REGISTER, 0);
     }
 
+    public void setKiloAvemShowValue(int value) {
+        avemKiloVoltmeterController.write(CHANGE_SHOW_VALUE , value);
+    }
 
     public void initExperimentDevices() {
         resetTimer();

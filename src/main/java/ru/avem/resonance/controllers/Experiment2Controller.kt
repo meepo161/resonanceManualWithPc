@@ -12,6 +12,7 @@ import javafx.scene.control.TextArea
 import javafx.scene.layout.AnchorPane
 import javafx.scene.paint.Color
 import javafx.stage.Stage
+import ru.avem.resonance.Constants
 import ru.avem.resonance.Constants.Ends.*
 import ru.avem.resonance.Constants.Time.MILLS_IN_SEC
 import ru.avem.resonance.Constants.Vfd.VFD_FORWARD
@@ -260,6 +261,7 @@ class Experiment2Controller : DeviceState(), ExperimentController {
             }
 
             if (isExperimentRunning) {
+                communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
                 appendOneMessageToLog("Запускаем ЧП")
@@ -536,7 +538,6 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                     experiment2Model!!.frequency = FParma
                 }
             }
-
             DELTACP2000_ID -> when (param) {
                 DeltaCP2000Model.RESPONDING_PARAM -> {
                     isDeltaResponding = value as Boolean
@@ -568,7 +569,6 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                     experiment2Model!!.currentLeak = IAvem
                 }
             }
-
             KILOAVEM_ID -> when (param) {
                 AvemVoltmeterModel.RESPONDING_PARAM -> {
                     isKiloAvemResponding = value as Boolean

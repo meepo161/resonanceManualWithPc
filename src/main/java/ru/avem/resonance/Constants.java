@@ -50,4 +50,7 @@ public final class Constants {
         public static final Short VFD_FORWARD = 1280;
     }
 
+    public enum Avem {
+        VOLTAGE_AMP, VOLTAGE_AVERAGE, VOLTAGE_RMS, FREQUENCY
+    }
 }

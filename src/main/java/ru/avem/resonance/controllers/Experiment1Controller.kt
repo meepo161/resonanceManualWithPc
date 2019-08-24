@@ -12,6 +12,7 @@ import javafx.scene.control.TextArea
 import javafx.scene.layout.AnchorPane
 import javafx.scene.paint.Color
 import javafx.stage.Stage
+import ru.avem.resonance.Constants
 import ru.avem.resonance.Constants.Ends.*
 import ru.avem.resonance.Constants.Time.MILLS_IN_SEC
 import ru.avem.resonance.Constants.Vfd.VFD_FORWARD
@@ -263,6 +264,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             }
 
             if (isExperimentRunning) {
+                communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
                 appendOneMessageToLog("Запускаем ЧП")
@@ -370,19 +372,19 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         }
         communicationModel.startObject()
         sleep(3000)
-        var biggerU = measuringU
-        var smallerI = measuringIC
+        var highestU = measuringU
+        var lowestI = measuringIC
         var step = 5
         appendOneMessageToLog("Идет поиск резонанса")
         while ((step-- > 0) && isExperimentRunning && isDevicesResponding) {
-            if (measuringU > biggerU) {
-                biggerU = measuringU
+            if (measuringU > highestU) {
+                highestU = measuringU
                 step = 5
             }
-            if (measuringIC < smallerI) {
-                smallerI = measuringIC
+            if (measuringIC < lowestI) {
+                lowestI = measuringIC
                 step = 5
-            }
+            } //TODO попробовать через &&
             sleep(500)
         }
         communicationModel.stopObject()
@@ -390,7 +392,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         communicationModel.changeRotation()
         communicationModel.setObjectParams(25 * 100, 380 * 10, 25 * 100)
         communicationModel.startObject()
-        while (measuringU * 1.05 < biggerU || measuringIC > smallerI * 1.05) {
+        while (measuringU * 1.05 <= highestU || measuringIC >= lowestI * 1.05) { //Из-за инерции
             if (statusEndsVFD == OMIK_DOWN_END) {
                 setCause("Не удалось подобрать резонанс")
             }

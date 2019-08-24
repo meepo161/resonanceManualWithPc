@@ -7,7 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.Observer;
 
 public class AvemVoltmeterController implements DeviceController {
-    private static final short U_RMS_REGISTER = 2;
+    private static final short U_AMP_REGISTER = 0;
+    public static final short CHANGE_SHOW_VALUE = 108;
 
     private static final int NUM_OF_WORDS_IN_REGISTER = 1;
     private static final short NUM_OF_REGISTERS = 1 * NUM_OF_WORDS_IN_REGISTER;
@@ -57,7 +58,7 @@ public class AvemVoltmeterController implements DeviceController {
         if (thereAreReadAttempts()) {
             readAttempt--;
             ModbusController.RequestStatus status = modbusController.readInputRegisters(
-                    address, U_RMS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+                    address, U_AMP_REGISTER, NUM_OF_REGISTERS, inputBuffer);
 
             if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
                 model.setReadResponding(true);
