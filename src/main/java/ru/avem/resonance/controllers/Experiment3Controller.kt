@@ -362,27 +362,24 @@ class Experiment3Controller : DeviceState(), ExperimentController {
 
     private fun waitingLatrCoarse(voltage: Float) {
         appendOneMessageToLog("Грубая регулировка")
-        var isLatrCoarseReady = false
-        while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage - 2000 && measuringU < voltage + 750) {
-                isLatrCoarseReady = true
-            } else if (measuringU < voltage - 2000) {
+        while (isExperimentRunning && isDevicesResponding && (measuringU <= voltage - 2000 || measuringU > voltage + 750)) {
+            if (measuringU <= voltage - 2000) {
                 communicationModel.startUpLATRFast(380f, false)
             } else if (measuringU > voltage + 750) {
                 communicationModel.startUpLATRFast(1f, false)
+            } else {
+                break
             }
         }
         communicationModel.stopLATR()
-        sleep(3000)
 
-        isLatrCoarseReady = false
-        while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage - 600 && measuringU < voltage + 300) {
-                isLatrCoarseReady = true
-            } else if (measuringU < voltage - 600) {
+        while (isExperimentRunning && isDevicesResponding && (measuringU <= voltage - 600 && measuringU > voltage + 300)) {
+            if (measuringU <= voltage - 600) {
                 communicationModel.startUpLATRSlow(380f, false)
             } else if (measuringU > voltage + 300) {
                 communicationModel.startUpLATRSlow(1f, false)
+            } else {
+                break
             }
         }
         communicationModel.stopLATR()

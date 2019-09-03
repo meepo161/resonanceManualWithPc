@@ -5,11 +5,10 @@ import javafx.collections.FXCollections
 import javafx.fxml.FXML
 import javafx.scene.chart.LineChart
 import javafx.scene.chart.XYChart
-import javafx.scene.control.Button
-import javafx.scene.control.TableColumn
-import javafx.scene.control.TableView
-import javafx.scene.control.TextArea
+import javafx.scene.control.*
 import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.GridPane
+import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.stage.Stage
 import ru.avem.resonance.Constants
@@ -26,10 +25,13 @@ import ru.avem.resonance.communication.devices.latr.LatrModel
 import ru.avem.resonance.communication.devices.parmaT400.ParmaT400Model
 import ru.avem.resonance.communication.devices.pr200.OwenPRModel
 import ru.avem.resonance.communication.modbus.utils.Utils
+import ru.avem.resonance.db.TestItemRepository
+import ru.avem.resonance.db.model.TestItem
 import ru.avem.resonance.model.Experiment1Model
 import ru.avem.resonance.model.MainModel
 import ru.avem.resonance.model.Point
 import ru.avem.resonance.utils.Log
+import ru.avem.resonance.utils.Toast
 import ru.avem.resonance.utils.Utils.sleep
 import java.text.SimpleDateFormat
 import java.util.*
@@ -65,6 +67,19 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     lateinit var buttonCancelAll: Button
     @FXML
     lateinit var root: AnchorPane
+    @FXML
+    lateinit var gridPaneTimeTorque: GridPane
+    @FXML
+    lateinit var vBoxTime: VBox
+    @FXML
+    lateinit var vBoxVoltage: VBox
+    @FXML
+    lateinit var anchorPaneTimeTorque: AnchorPane
+    @FXML
+    lateinit var scrollPaneTimeTorque: ScrollPane
+
+    private lateinit var lastPair: Pair<TextField, TextField>
+    private val stackPairs: Stack<Pair<TextField, TextField>> = Stack()
 
     private val mainModel = MainModel.instance
     private val currentProtocol = mainModel.currentProtocol
@@ -139,6 +154,8 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private val firstVoltageLatr = 1800.0.toFloat()
 
+    private var currentTestItem: TestItem = mainModel.currentTestItem
+
 
     private val isThereAreAccidents: Boolean
         get() {
@@ -170,7 +187,6 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         communicationModel.addObserver(this)
         voltageList = currentProtocol.voltageResonance
         timeList = currentProtocol.timesResonance
-
         tableColumnU.setCellValueFactory { cellData -> cellData.value.voltageProperty() }
         tableColumnIA.setCellValueFactory { cellData -> cellData.value.currentAProperty() }
         tableColumnIB.setCellValueFactory { cellData -> cellData.value.currentBProperty() }
@@ -179,28 +195,109 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         tableColumnFrequency.setCellValueFactory { cellData -> cellData.value.frequencyProperty() }
         tableColumnResultExperiment1.setCellValueFactory { cellData -> cellData.value.resultProperty() }
 
-        val createLoadDiagram = createLoadDiagram()
-        lineChartExperiment1.data.addAll(createLoadDiagram)
+        createLoadDiagram()
+        fillStackPairs()
     }
 
-    private fun createLoadDiagram(): XYChart.Series<Number, Number> {
-        val seriesTimesAndTorques = XYChart.Series<Number, Number>()
+    private fun fillStackPairs() {
+        for (i in 0 until currentTestItem.timesResonance.size) {
+            handleAddPair()
+            lastPair.first.text = currentTestItem.timesResonance[i].toString()
+            lastPair.second.text = currentTestItem.voltageResonance[i].toString()
+        }
+    }
+
+    @FXML
+    fun handleAddPair() {
+        addPair()
+    }
+
+    private fun addPair() {
+        lastPair = newTextFieldsForChart()
+        stackPairs.push(lastPair)
+        vBoxTime.children.add(lastPair.first)
+        vBoxVoltage.children.add(lastPair.second)
+        anchorPaneTimeTorque.prefHeight += MainViewController.HEIGHT_VBOX
+    }
+
+    @FXML
+    fun handleRemovePair() {
+        if (stackPairs.isNotEmpty()) {
+            removePair()
+            saveTestItemPoints()
+            createLoadDiagram()
+        } else{
+            Toast.makeText("Нет полей для удаления").show(Toast.ToastType.ERROR)
+        }
+    }
+
+    private fun removePair() {
+        lastPair = stackPairs.pop()
+        vBoxTime.children.remove(lastPair.first)
+        vBoxVoltage.children.remove(lastPair.second)
+        anchorPaneTimeTorque.prefHeight -= MainViewController.HEIGHT_VBOX
+    }
+
+    private fun newTextFieldsForChart(): Pair<TextField, TextField> {
+        val time = TextField()
+        time.isEditable = true
+        time.prefWidth = 72.0
+        time.maxWidth = 72.0
+        time.setOnAction {
+            saveTestItemPoints()
+            createLoadDiagram()
+        }
+
+        val voltage = TextField()
+        voltage.isEditable = true
+        voltage.prefWidth = 72.0
+        voltage.maxWidth = 72.0
+        voltage.setOnAction {
+            saveTestItemPoints()
+            createLoadDiagram()
+        }
+        return time to voltage
+    }
+
+    private fun saveTestItemPoints() {
+        val times: ArrayList<Double> = ArrayList()
+        val voltages: ArrayList<Double> = ArrayList()
+
+        stackPairs.forEach {
+            if (!it.first.text.isNullOrEmpty() &&
+                    !it.second.text.isNullOrEmpty() &&
+                    it.first.text.toDoubleOrNull() != null &&
+                    it.second.text.toDoubleOrNull() != null) {
+                times.add(it.first.text.toDouble())
+                voltages.add(it.second.text.toDouble())
+            } else {
+                Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
+            }
+        }
+        currentTestItem.timesResonance = times
+        currentTestItem.voltageResonance = voltages
+        TestItemRepository.updateTestItem(currentTestItem)
+    }
+
+    private fun createLoadDiagram() {
+        lineChartExperiment1.data.clear()
+        val seriesTimesAndVoltages = XYChart.Series<Number, Number>()
 
         var desperateDot = 0.0
 
-        seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, currentProtocol.voltageResonance[0]))
+        seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[0]))
 
-        for (i in 0 until currentProtocol.timesResonance.size) {
-            seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentProtocol.timesResonance[i], currentProtocol.voltageResonance[i]))
-            if (i != currentProtocol.timesResonance.size - 1) {
-                seriesTimesAndTorques.data.add(XYChart.Data(desperateDot + currentProtocol.timesResonance[i], currentProtocol.voltageResonance[i + 1]))
+        for (i in 0 until currentTestItem.timesResonance.size) {
+            seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i]))
+            if (i != currentTestItem.timesResonance.size - 1) {
+                seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i + 1]))
             }
-            desperateDot += currentProtocol.timesResonance[i]
+            desperateDot += currentTestItem.timesResonance[i]
         }
 
-        seriesTimesAndTorques.data.add(XYChart.Data(desperateDot, 0))
+        seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot, 0))
 
-        return seriesTimesAndTorques
+        lineChartExperiment1.data.addAll(seriesTimesAndVoltages)
     }
 
     private fun fillProtocolExperimentFields() {
@@ -297,7 +394,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                         appendOneMessageToLog("Началась регулировка")
                         communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
                         waitingLatrCoarse(voltageList[i].toFloat())
-                        fineLatrCoarse(voltageList[i].toFloat())
+                        fineLatr(voltageList[i].toFloat())
                         if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
                             setCause("Коэфицент трансформации сильно отличается")
                         }
@@ -405,26 +502,24 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private fun waitingLatrCoarse(voltage: Float) {
         appendOneMessageToLog("Грубая регулировка")
-        var isLatrCoarseReady = false
-        while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage - 1000 && measuringU < voltage + 750) {
-                isLatrCoarseReady = true
-            } else if (measuringU < voltage - 1000) {
+        while (isExperimentRunning && isDevicesResponding && (measuringU <= voltage - 1000 || measuringU > voltage + 750)) {
+            if (measuringU <= voltage - 1000) {
                 communicationModel.startUpLATRFast(380f, false)
             } else if (measuringU > voltage + 750) {
                 communicationModel.startUpLATRFast(1f, false)
+            } else {
+                break
             }
         }
         communicationModel.stopLATR()
 
-        isLatrCoarseReady = false
-        while (isExperimentRunning && isDevicesResponding && !isLatrCoarseReady) {
-            if (measuringU > voltage - 300 && measuringU < voltage + 300) {
-                isLatrCoarseReady = true
-            } else if (measuringU < voltage - 300) {
+        while (isExperimentRunning && isDevicesResponding && (measuringU <= voltage - 300 && measuringU > voltage + 300)) {
+            if (measuringU <= voltage - 300) {
                 communicationModel.startUpLATRSlow(380f, false)
             } else if (measuringU > voltage + 300) {
                 communicationModel.startUpLATRSlow(1f, false)
+            } else {
+                break
             }
         }
         communicationModel.stopLATR()
@@ -432,10 +527,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         appendOneMessageToLog("Грубая регулировка окончена")
     }
 
-    private fun fineLatrCoarse(voltage: Float) {
+    private fun fineLatr(voltage: Float) {
         appendOneMessageToLog("Точная регулировка")
         sleep(1000)
-        while ((measuringU <= voltage - 150 || measuringU >= voltage + 150) && isExperimentRunning) {
+        while ((measuringU <= voltage - 150 || measuringU > voltage + 150) && isExperimentRunning) {
             if (measuringU <= voltage - 150) {
                 communicationModel.startUpLATRFast(380f, false)
                 sleep(1750)

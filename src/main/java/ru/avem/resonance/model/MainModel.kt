@@ -10,6 +10,7 @@ class MainModel private constructor() {
 
     var isNeedRefresh = true
     var currentProtocol: Protocol = Protocol()
+    var currentTestItem: TestItem = TestItem()
 
     private lateinit var intermediateProtocol: Protocol
 

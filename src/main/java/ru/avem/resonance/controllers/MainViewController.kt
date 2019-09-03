@@ -108,7 +108,7 @@ class MainViewController : Statable {
 
 
     private var allTestItems = TestItemRepository.getAllTestItems()
-    var currentTestItem: TestItem? = null
+    var currentTestItem: TestItem = mainModel.currentTestItem
     private val resultData = FXCollections.observableArrayList<ResultModel>()
 
     private val idleState = IdleState(this)
@@ -220,24 +220,21 @@ class MainViewController : Statable {
                 Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
             }
         }
-
-        if (currentTestItem != null) {
-            when {
-                radioResonance.isSelected -> {
-                    currentTestItem!!.timesResonance = times
-                    currentTestItem!!.voltageResonance = voltages
-                }
-                radioViu.isSelected -> {
-                    currentTestItem!!.timesViu = times
-                    currentTestItem!!.voltageViu = voltages
-                }
-                radioViuDC.isSelected -> {
-                    currentTestItem!!.timesViuDC = times
-                    currentTestItem!!.voltageViuDC = voltages
-                }
+        when {
+            radioResonance.isSelected -> {
+                currentTestItem.timesResonance = times
+                currentTestItem.voltageResonance = voltages
             }
-            TestItemRepository.updateTestItem(currentTestItem)
+            radioViu.isSelected -> {
+                currentTestItem.timesViu = times
+                currentTestItem.voltageViu = voltages
+            }
+            radioViuDC.isSelected -> {
+                currentTestItem.timesViuDC = times
+                currentTestItem.voltageViuDC = voltages
+            }
         }
+        TestItemRepository.updateTestItem(currentTestItem)
     }
 
     @FXML
@@ -255,9 +252,13 @@ class MainViewController : Statable {
 
     @FXML
     fun handleRemovePair() {
-        removePair()
-        saveTestItemPoints()
-        createLoadDiagram()
+        if (stackPairs.isNotEmpty()) {
+            removePair()
+            saveTestItemPoints()
+            createLoadDiagram()
+        } else{
+            Toast.makeText("Нет полей для удаления").show(Toast.ToastType.ERROR)
+        }
     }
 
     private fun removePair() {
@@ -290,35 +291,34 @@ class MainViewController : Statable {
 
     @FXML
     fun handleSelectTestItemExperiment() {
+        mainModel.currentTestItem = comboBoxTestItem.selectionModel.selectedItem
         currentTestItem = comboBoxTestItem.selectionModel.selectedItem
-        if (currentTestItem != null) {
-            removeData()
-            fillStackPairs()
-            createLoadDiagram()
-        }
+        removeData()
+        fillStackPairs()
+        createLoadDiagram()
     }
 
     private fun fillStackPairs() {
         when {
             radioResonance.isSelected -> {
-                for (i in 0 until currentTestItem!!.timesResonance.size) {
+                for (i in 0 until currentTestItem.timesResonance.size) {
                     handleAddPair()
-                    lastPair.first.text = currentTestItem!!.timesResonance[i].toString()
-                    lastPair.second.text = currentTestItem!!.voltageResonance[i].toString()
+                    lastPair.first.text = currentTestItem.timesResonance[i].toString()
+                    lastPair.second.text = currentTestItem.voltageResonance[i].toString()
                 }
             }
             radioViu.isSelected -> {
-                for (i in 0 until currentTestItem!!.timesViu.size) {
+                for (i in 0 until currentTestItem.timesViu.size) {
                     handleAddPair()
-                    lastPair.first.text = currentTestItem!!.timesViu[i].toString()
-                    lastPair.second.text = currentTestItem!!.voltageViu[i].toString()
+                    lastPair.first.text = currentTestItem.timesViu[i].toString()
+                    lastPair.second.text = currentTestItem.voltageViu[i].toString()
                 }
             }
             radioViuDC.isSelected -> {
-                for (i in 0 until currentTestItem!!.timesViuDC.size) {
+                for (i in 0 until currentTestItem.timesViuDC.size) {
                     handleAddPair()
-                    lastPair.first.text = currentTestItem!!.timesViuDC[i].toString()
-                    lastPair.second.text = currentTestItem!!.voltageViuDC[i].toString()
+                    lastPair.first.text = currentTestItem.timesViuDC[i].toString()
+                    lastPair.second.text = currentTestItem.voltageViuDC[i].toString()
                 }
             }
         }
@@ -331,46 +331,46 @@ class MainViewController : Statable {
 
         when {
             radioResonance.isSelected -> {
-                if (currentTestItem!!.voltageResonance.isNotEmpty()) {
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageResonance[0]))
-                    for (i in 0 until currentTestItem!!.timesResonance.size) {
+                if (currentTestItem.voltageResonance.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[0]))
+                    for (i in 0 until currentTestItem.timesResonance.size) {
                         seriesTimesAndVoltage.data.add(XYChart.Data(
-                                desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i]))
-                        if (i != currentTestItem!!.timesResonance.size - 1) {
+                                desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i]))
+                        if (i != currentTestItem.timesResonance.size - 1) {
                             seriesTimesAndVoltage.data.add(XYChart.Data(
-                                    desperateDot + currentTestItem!!.timesResonance[i], currentTestItem!!.voltageResonance[i + 1]))
+                                    desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i + 1]))
                         }
-                        desperateDot += currentTestItem!!.timesResonance[i]
+                        desperateDot += currentTestItem.timesResonance[i]
                     }
                 }
             }
             radioViu.isSelected -> {
-                if (currentTestItem!!.voltageViu.isNotEmpty()) {
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageViu[0]))
-                    for (i in 0 until currentTestItem!!.timesViu.size) {
+                if (currentTestItem.voltageViu.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[0]))
+                    for (i in 0 until currentTestItem.timesViu.size) {
                         seriesTimesAndVoltage.data.add(XYChart.Data(
-                                desperateDot + currentTestItem!!.timesViu[i],
-                                currentTestItem!!.voltageViu[i]))
-                        if (i != currentTestItem!!.timesViu.size - 1) {
+                                desperateDot + currentTestItem.timesViu[i],
+                                currentTestItem.voltageViu[i]))
+                        if (i != currentTestItem.timesViu.size - 1) {
                             seriesTimesAndVoltage.data.add(XYChart.Data(
-                                    desperateDot + currentTestItem!!.timesViu[i],
-                                    currentTestItem!!.voltageViu[i + 1]))
+                                    desperateDot + currentTestItem.timesViu[i],
+                                    currentTestItem.voltageViu[i + 1]))
                         }
-                        desperateDot += currentTestItem!!.timesViu[i]
+                        desperateDot += currentTestItem.timesViu[i]
                     }
                 }
             }
             radioViuDC.isSelected -> {
-                if (currentTestItem!!.voltageViuDC.isNotEmpty()) {
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem!!.voltageViuDC[0]))
-                    for (i in 0 until currentTestItem!!.timesViuDC.size) {
+                if (currentTestItem.voltageViuDC.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[0]))
+                    for (i in 0 until currentTestItem.timesViuDC.size) {
                         seriesTimesAndVoltage.data.add(XYChart.Data(
-                                desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i]))
-                        if (i != currentTestItem!!.timesViuDC.size - 1) {
+                                desperateDot + currentTestItem.timesViuDC[i], currentTestItem.voltageViuDC[i]))
+                        if (i != currentTestItem.timesViuDC.size - 1) {
                             seriesTimesAndVoltage.data.add(XYChart.Data(
-                                    desperateDot + currentTestItem!!.timesViuDC[i], currentTestItem!!.voltageViuDC[i + 1]))
+                                    desperateDot + currentTestItem.timesViuDC[i], currentTestItem.voltageViuDC[i + 1]))
                         }
-                        desperateDot += currentTestItem!!.timesViuDC[i]
+                        desperateDot += currentTestItem.timesViuDC[i]
                     }
                 }
             }
@@ -598,8 +598,8 @@ class MainViewController : Statable {
 
     @FXML
     private fun handleButtonProtocolNext() {
-        if (currentTestItem != null) {
-            mainModel.createNewProtocol(textFieldSerialNumber.text, currentTestItem!!)
+        if (comboBoxTestItem.selectionModel.selectedItem != null) {
+            mainModel.createNewProtocol(textFieldSerialNumber.text, currentTestItem)
             startExperiment()
             toResultState()
         } else {
@@ -725,7 +725,7 @@ class MainViewController : Statable {
     }
 
     fun handleDeleteTestItem() {
-        if (currentTestItem != null) {
+        if (comboBoxTestItem.selectionModel.selectedItem != null) {
             TestItemRepository.deleteTestItem(currentTestItem)
             initDataForTestItem()
         } else {
