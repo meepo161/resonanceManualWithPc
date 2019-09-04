@@ -67,6 +67,7 @@ class Main : Application(), Exitappable {
                 KeyCode.ESCAPE -> if (event.target !is TextField) {
                     Platform.exit()
                 }
+                else -> print("нажата кнопка не ESCAPE")
             }
         }
     }
@@ -84,6 +85,7 @@ class Main : Application(), Exitappable {
                 KeyCode.ESCAPE -> if (event.target !is TextField) {
                     exitApp()
                 }
+                else -> print("нажата кнопка не ESCAPE")
             }
         }
     }

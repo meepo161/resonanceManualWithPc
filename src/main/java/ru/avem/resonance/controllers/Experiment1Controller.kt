@@ -11,7 +11,6 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.stage.Stage
-import ru.avem.resonance.Constants
 import ru.avem.resonance.Constants.Ends.*
 import ru.avem.resonance.Constants.Time.MILLS_IN_SEC
 import ru.avem.resonance.Constants.Vfd.VFD_FORWARD
@@ -150,11 +149,15 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private var voltageList: ArrayList<Double> = ArrayList()
     private var timeList: ArrayList<Double> = ArrayList()
+
     private var currentDot = XYChart.Series<Number, Number>()
 
     private val firstVoltageLatr = 1800.0.toFloat()
 
     private var currentTestItem: TestItem = mainModel.currentTestItem
+    private var timePassed = 0.0
+    private var time = 0.0
+    private var timeSum = 0.0
 
 
     private val isThereAreAccidents: Boolean
@@ -167,8 +170,9 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         }
 
     private val isDevicesResponding: Boolean
-        get() = isOwenPRResponding && isAvemResponding && isDeltaResponding && isLatrResponding
-                && isParmaResponding && isKiloAvemResponding
+        get() = true
+//        get() = isOwenPRResponding && isAvemResponding && isDeltaResponding && isLatrResponding
+//                && isParmaResponding && isKiloAvemResponding
 
     private val points = ArrayList<Point>()
 
@@ -201,7 +205,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private fun fillStackPairs() {
         for (i in 0 until currentTestItem.timesResonance.size) {
-            handleAddPair()
+            addPair()
             lastPair.first.text = currentTestItem.timesResonance[i].toString()
             lastPair.second.text = currentTestItem.voltageResonance[i].toString()
         }
@@ -226,7 +230,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             removePair()
             saveTestItemPoints()
             createLoadDiagram()
-        } else{
+        } else {
             Toast.makeText("Нет полей для удаления").show(Toast.ToastType.ERROR)
         }
     }
@@ -244,8 +248,12 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         time.prefWidth = 72.0
         time.maxWidth = 72.0
         time.setOnAction {
-            saveTestItemPoints()
-            createLoadDiagram()
+            if (time.text.toDouble() * 1000 > timePassed) {
+                saveTestItemPoints()
+                createLoadDiagram()
+            } else {
+                Toast.makeText("Введенное значение меньше пройденного значения времени").show(Toast.ToastType.ERROR)
+            }
         }
 
         val voltage = TextField()
@@ -276,6 +284,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         }
         currentTestItem.timesResonance = times
         currentTestItem.voltageResonance = voltages
+
+        voltageList = currentProtocol.voltageResonance
+        timeList = currentProtocol.timesResonance
+
         TestItemRepository.updateTestItem(currentTestItem)
     }
 
@@ -347,81 +359,90 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         cause = ""
 
         Thread {
-            if (isExperimentRunning) {
-                appendOneMessageToLog("Визуально осматривайте трансфоматор на наличие потеков масла перед каждым опытом")
-                communicationModel.initOwenPrController()
-                appendOneMessageToLog("Начало испытания")
-                communicationModel.initExperimentDevices()
-                sleep(4000)
-            }
+            //            if (isExperimentRunning) {
+//                appendOneMessageToLog("Визуально осматривайте трансфоматор на наличие потеков масла перед каждым опытом")
+//                communicationModel.initOwenPrController()
+//                appendOneMessageToLog("Начало испытания")
+//                communicationModel.initExperimentDevices()
+//                sleep(4000)
+//            }
+//
+//            while (isExperimentRunning && !isStartButtonOn) {
+//                appendOneMessageToLog("Включите кнопочный пост")
+//                sleep(10)
+//            }
+//
+//            if (isExperimentRunning) {
+//                communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
+//                appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
+//                communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
+//                appendOneMessageToLog("Запускаем ЧП")
+//                communicationModel.onPRO4()
+//                resetOmik()
+//            }
+//
+//            if (isExperimentRunning) {
+//                communicationModel.onPRO3()
+//                sleep(1000)
+//                appendOneMessageToLog("Поднимаем напряжение на объекте испытания для поиска резонанса")
+//                communicationModel.startUpLATRFast(firstVoltageLatr, true)
+//                waitingLatrCoarse(firstVoltageLatr)
+//                if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
+//                    setCause("Коэфицент трансформации сильно отличается")
+//                }
+//
+//            }
+//
+//            if (isExperimentRunning) {
+//                findResonance()
+//            }
 
-            while (isExperimentRunning && !isStartButtonOn) {
-                appendOneMessageToLog("Включите кнопочный пост")
-                sleep(10)
-            }
-
-            if (isExperimentRunning) {
-                communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
-                appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
-                communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
-                appendOneMessageToLog("Запускаем ЧП")
-                communicationModel.onPRO4()
-                resetOmik()
-            }
-
-            if (isExperimentRunning) {
-                communicationModel.onPRO3()
-                sleep(1000)
-                appendOneMessageToLog("Поднимаем напряжение на объекте испытания для поиска резонанса")
-                communicationModel.startUpLATRFast(firstVoltageLatr, true)
-                waitingLatrCoarse(firstVoltageLatr)
-                if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
-                    setCause("Коэфицент трансформации сильно отличается")
-                }
-
-            }
-
-            if (isExperimentRunning) {
-                findResonance()
-            }
-
-            var timeSum = 0.0
+            timeSum = 0.0
 
             if (isExperimentRunning && isDevicesResponding) {
                 for (i in voltageList.indices) {
-                    var timePassed = 0.0
+                    stackPairs[i].second.isDisable = true
+                    timePassed = 0.0
                     if (isExperimentRunning && isDevicesResponding) {
                         appendOneMessageToLog("Началась регулировка")
-                        communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
-                        waitingLatrCoarse(voltageList[i].toFloat())
-                        fineLatr(voltageList[i].toFloat())
-                        if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
-                            setCause("Коэфицент трансформации сильно отличается")
-                        }
+//                        communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
+//                        waitingLatrCoarse(voltageList[i].toFloat())
+//                        fineLatr(voltageList[i].toFloat())
+//                        if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
+//                            setCause("Коэфицент трансформации сильно отличается")
+//                        }
+                        sleep(3000)
                         appendOneMessageToLog("Регулировка окончена")
                     }
-                    val time = timeList[i] * MILLS_IN_SEC
+
+                    time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
                     while (isExperimentRunning && timePassed < time) {
-                        sleep(100)
-                        timePassed += 100.0
-                        drawDot(timeSum, timeSum + currentProtocol.timesResonance[i], currentProtocol.voltageResonance[i], timePassed / time)
+                        appendMessageToLog("тик")
+                        sleep(10)
+                        timePassed += 10.75 //потому что while занимает реально примерно 10.75 ms
+                        if (time != stackPairs[i].second.text.toDouble() * MILLS_IN_SEC) {
+                            time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
+                        }
+                        drawDot(timeSum, timeSum + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i], timePassed / time)
                     }
-                    timeSum += currentProtocol.timesResonance[i]
+                    timeSum += currentTestItem.timesResonance[i]
+                    stackPairs[i].first.isDisable = true
                 }
+                drawDot(0.0, timeSum, 0.0, timePassed / time)
             }
 
             isNeedToRefresh = false
-            communicationModel.startUpLATRFast(1f, true)
-            while (measuringU > 800) {
-                sleep(10)
-            }
-            communicationModel.stopLATR()
-            resetOmik()
-            communicationModel.stopObject()
-            sleep(3000)
-            communicationModel.offAllKms()
-            sleep(50)
-            communicationModel.finalizeAllDevices()
+//            communicationModel.startUpLATRFast(1f, true)
+//            while (measuringU > 800) {
+//                sleep(10)
+//            }
+//            communicationModel.stopLATR()
+//            resetOmik()
+//            communicationModel.stopObject()
+//            sleep(3000)
+//            communicationModel.offAllKms()
+//            sleep(50)
+//            communicationModel.finalizeAllDevices()
 
             if (cause != "") {
                 appendMessageToLog(String.format("Испытание прервано по причине: %s", cause))
