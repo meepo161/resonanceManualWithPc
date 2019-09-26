@@ -89,6 +89,10 @@ public class CommunicationModel extends Observable implements Observer {
                             for (int i = 0; i <= 1; i++) {
                                 deviceController.read(i);
                             }
+                        }  else if (deviceController instanceof AvemVoltmeterController) {
+                            for (int i = 0; i <= 1; i++) {
+                                deviceController.read(i);
+                            }
                         } else {
                             deviceController.read();
                         }

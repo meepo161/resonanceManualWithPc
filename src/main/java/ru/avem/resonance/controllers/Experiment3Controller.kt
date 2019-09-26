@@ -562,7 +562,7 @@ class Experiment3Controller : DeviceState(), ExperimentController {
                     isAvemResponding = value as Boolean
                     Platform.runLater { deviceStateCircleAvem.fill = if (value) Color.LIME else Color.RED }
                 }
-                AvemVoltmeterModel.U_PARAM -> {
+                AvemVoltmeterModel.U_AMP_PARAM -> {
                     measuringIAvem = value as Float
                     val IAvem = String.format("%.4f", measuringIAvem)
                     experiment3Model!!.currentLeak = IAvem
@@ -573,7 +573,7 @@ class Experiment3Controller : DeviceState(), ExperimentController {
                     isKiloAvemResponding = value as Boolean
                     Platform.runLater { deviceStateCircleKiloAvem.fill = if (value) Color.LIME else Color.RED }
                 }
-                AvemVoltmeterModel.U_PARAM -> {
+                AvemVoltmeterModel.U_RMS_PARAM -> {
                     measuringU = abs((value as Float) * 1000)
                     val kiloAvemU = String.format("-%.2f", measuringU)
                     experiment3Model!!.voltage = kiloAvemU

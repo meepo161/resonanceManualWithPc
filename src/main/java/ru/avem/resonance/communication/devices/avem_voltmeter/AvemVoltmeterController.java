@@ -8,6 +8,7 @@ import java.util.Observer;
 
 public class AvemVoltmeterController implements DeviceController {
     private static final short U_AMP_REGISTER = 0;
+    private static final short U_RMS_REGISTER = 2;
     public static final short CHANGE_SHOW_VALUE = 108;
 
     private static final int NUM_OF_WORDS_IN_REGISTER = 1;
@@ -57,16 +58,23 @@ public class AvemVoltmeterController implements DeviceController {
         ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
         if (thereAreReadAttempts()) {
             readAttempt--;
-            ModbusController.RequestStatus status = modbusController.readInputRegisters(
-                    address, U_AMP_REGISTER, NUM_OF_REGISTERS, inputBuffer);
-
-            if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
-                model.setReadResponding(true);
-                resetReadAttempts();
-                resetReadAttemptsOfAttempts();
-                model.setU(inputBuffer.getFloat());
-            } else {
-                read(args);
+            switch ((Integer) args[0]) {
+                case 0:
+                    if (!getUAMP().equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                        read(args);
+                    } else {
+                        resetReadAttempts();
+                        resetReadAttemptsOfAttempts();
+                    }
+                    break;
+                case 1:
+                    if (!getURMS().equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                        read(args);
+                    } else {
+                        resetReadAttempts();
+                        resetReadAttemptsOfAttempts();
+                    }
+                    break;
             }
         } else {
             readAttemptOfAttempt--;
@@ -76,10 +84,85 @@ public class AvemVoltmeterController implements DeviceController {
                 resetReadAttempts();
             }
         }
+
+        ModbusController.RequestStatus status = modbusController.readInputRegisters(
+                address, U_AMP_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+
+        if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+            model.setReadResponding(true);
+            resetReadAttempts();
+            resetReadAttemptsOfAttempts();
+            model.setUAMP(inputBuffer.getFloat());
+        } else {
+            read(args);
+        }
+    }
+
+    private ModbusController.RequestStatus getUAMP() {
+        ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+        ModbusController.RequestStatus statusUAMP = modbusController.readInputRegisters(
+                address, U_AMP_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+        if (statusUAMP.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+            model.setReadResponding(true);
+            try {
+                model.setReadResponding(true);
+                resetReadAttempts();
+                resetReadAttemptsOfAttempts();
+                model.setUAMP(inputBuffer.getFloat());
+            } catch (Exception ignored) {
+            }
+        }
+        return statusUAMP;
+    }
+
+    private ModbusController.RequestStatus getURMS() {
+        ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+        ModbusController.RequestStatus statusURMS = modbusController.readInputRegisters(
+                address, U_RMS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+        if (statusURMS.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+            model.setReadResponding(true);
+            try {
+                model.setReadResponding(true);
+                resetReadAttempts();
+                resetReadAttemptsOfAttempts();
+                model.setURMS(inputBuffer.getFloat());
+            } catch (Exception ignored) {
+            }
+        }
+        return statusURMS;
     }
 
     @Override
     public void write(Object... args) {
+        ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+        byte[] value = new byte[1];
+        if (args[1] instanceof Integer) {
+            value = intToByteArray((int) args[1]);
+        } else if (args[1] instanceof Float) {
+            value = floatToByteArray((float) args[1]);
+        }
+        if (thereAreWriteAttempts()) {
+            writeAttempt--;
+            ModbusController.RequestStatus status = modbusController.writeSingleHoldingRegister(address,
+                    (short) args[0], value, inputBuffer);
+            if (status.equals(ModbusController.RequestStatus.PORT_NOT_INITIALIZED)) {
+                return;
+            }
+            if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                model.setWriteResponding(true);
+                resetWriteAttempts();
+                resetWriteAttemptsOfAttempts();
+            } else {
+                write(args);
+            }
+        } else {
+            writeAttemptOfAttempt--;
+            if (writeAttemptOfAttempt <= 0) {
+                model.setWriteResponding(false);
+            } else {
+                resetWriteAttempts();
+            }
+        }
     }
 
     private byte[] intToByteArray(int i) {

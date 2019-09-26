@@ -5,7 +5,8 @@ import java.util.Observer;
 
 public class AvemVoltmeterModel extends Observable {
     public static final int RESPONDING_PARAM = 0;
-    public static final int U_PARAM = 1;
+    public static final int U_AMP_PARAM = 1;
+    public static final int U_RMS_PARAM = 2;
     private int deviceID;
     private boolean readResponding;
     private boolean writeResponding;
@@ -35,8 +36,12 @@ public class AvemVoltmeterModel extends Observable {
         notice(RESPONDING_PARAM, readResponding && writeResponding);
     }
 
-    public void setU(float u) {
-        notice(U_PARAM, u);
+    public void setUAMP(float u) {
+        notice(U_AMP_PARAM, u);
+    }
+
+    public void setURMS(float u) {
+        notice(U_RMS_PARAM, u);
     }
 
     private void notice(int param, Object value) {

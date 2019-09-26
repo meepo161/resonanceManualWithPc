@@ -94,7 +94,7 @@ public class ParmaT400Controller implements DeviceController {
                     break;
             }
         } else {
-           readAttemptOfAttempt--;
+            readAttemptOfAttempt--;
             if (readAttemptOfAttempt <= 0) {
                 model.setReadResponding(false);
             } else {

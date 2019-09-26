@@ -170,7 +170,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         }
 
     private val isDevicesResponding: Boolean
-        get() = true
+                get() = true
 //        get() = isOwenPRResponding && isAvemResponding && isDeltaResponding && isLatrResponding
 //                && isParmaResponding && isKiloAvemResponding
 
@@ -417,14 +417,14 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
                     time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
                     while (isExperimentRunning && timePassed < time) {
-                        appendMessageToLog("тик")
                         sleep(10)
-                        timePassed += 10.75 //потому что while занимает реально примерно 10.75 ms
+                        timePassed += 10.75 //потому что while занимает реально примерно 10.75 ms11
                         if (time != stackPairs[i].second.text.toDouble() * MILLS_IN_SEC) {
                             time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
                         }
                         drawDot(timeSum, timeSum + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i], timePassed / time)
                     }
+                    voltageList = currentTestItem.voltageResonance
                     timeSum += currentTestItem.timesResonance[i]
                     stackPairs[i].first.isDisable = true
                 }
@@ -709,7 +709,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     isAvemResponding = value as Boolean
                     Platform.runLater { deviceStateCircleAvem.fill = if (value) Color.LIME else Color.RED }
                 }
-                AvemVoltmeterModel.U_PARAM -> {
+                AvemVoltmeterModel.U_AMP_PARAM -> {
                     measuringIAvem = value as Float
                     val IAvem = String.format("%.4f", measuringIAvem)
                     experiment1Model!!.currentLeak = IAvem
@@ -721,7 +721,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     isKiloAvemResponding = value as Boolean
                     Platform.runLater { deviceStateCircleKiloAvem.fill = if (value) Color.LIME else Color.RED }
                 }
-                AvemVoltmeterModel.U_PARAM -> {
+                AvemVoltmeterModel.U_RMS_PARAM -> {
                     measuringU = (value as Float) * 1000
                     val kiloAvemU = String.format("%.2f", measuringU)
                     experiment1Model!!.voltage = kiloAvemU
