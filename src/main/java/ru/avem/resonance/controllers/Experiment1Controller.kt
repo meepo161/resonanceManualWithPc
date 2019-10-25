@@ -144,7 +144,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     @Volatile
     private var statusVFD: Short = 0
 
-    private var coef: Double = 102.0
+    private var coef: Double = 165.0
 
     private var voltageList: ArrayList<Double> = ArrayList()
     private var timeList: ArrayList<Double> = ArrayList()
@@ -308,17 +308,19 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     }
 
     private fun createLoadDiagram() {
-        while (isExperimentRunning) {
-            sleep(100)
+        Thread {
+            while (isExperimentRunning) {
+                sleep(100)
 
-            Platform.runLater {
-                realTime += 0.1
-                measuringU += 9
-                lineChartExperiment1.data.clear()
-                seriesTimesAndVoltage.data.add(XYChart.Data(realTime, measuringU))
-                lineChartExperiment1.data.add(seriesTimesAndVoltage)
+                Platform.runLater {
+                    realTime += 0.1
+                    measuringU += 9
+                    lineChartExperiment1.data.clear()
+                    seriesTimesAndVoltage.data.add(XYChart.Data(realTime, measuringU))
+                    lineChartExperiment1.data.add(seriesTimesAndVoltage)
+                }
             }
-        }
+        }.start()
     }
 
     private fun fillProtocolExperimentFields() {
@@ -378,8 +380,11 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 //                sleep(5000)
                 communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
                 sleep(5000)
-                communicationModel.startUpLATRFast(1.0f, true)
             }
+
+//            while (isExperimentRunning && latrStatus != LATR_DOWN_END) {
+//                sleep(100)
+//            }
 
 //            var startTime = 0L
 //            duty = 40.0f
@@ -396,30 +401,25 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 //                sleep(6000)
 //            }
 
-//            while (latrStatus != LATR_DOWN_END) {
-//                communicationModel.startUpLATRFast(0.0f, true)
-//            }
 
 //            while (isPRDI6) {
 //                appendOneMessageToLog("Включите рубильник")
 //            }
 
-//            if (isExperimentRunning) {
-//                communicationModel.onPRO1()
-//            }
-
-//            while (isPRMDI1) {
-//                appendOneMessageToLog("Нажмите кнопку ПУСК")
-//            }
 
             if (isExperimentRunning) {
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
                 appendOneMessageToLog("Запускаем ЧП")
-//                resetOmik()
-//                communicationModel.onPRO6() //последовательное
-//                communicationModel.onPRO7() //параллельно
+                resetOmik()
+                communicationModel.параллельнаяСхема_On()
+                communicationModel.короткозамыкатель_On()
             }
+
+            if (isExperimentRunning) {
+                communicationModel.разрешениеНаЗапуск_On()
+            }
+
 
 
 //            if (isExperimentRunning) {
@@ -444,19 +444,27 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     timePassed = 0.0
                     if (isExperimentRunning && isDevicesResponding) {
                         appendOneMessageToLog("Началась регулировка")
-                        selectDutyAndPulseForLatr(i)
-//                        communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
-//                        waitingLatrCoarse(voltageList[i].toFloat())
-//                        fineLatr(voltageList[i].toFloat())
-//                        if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
-//                            setCause("Коэфицент трансформации сильно отличается")
-//                        }
+                        if (currentTestItem.speedResonance[i + 1] > currentTestItem.speedResonance[i]) {
+                            selectDutyAndPulseForLatr(i)
+                        } else {
+                            duty = 48.0f
+                            pulse = 100.0f
+                        }
+                        communicationModel.startUpLATRWithRegulationSpeed((voltageList[i] / coef).toFloat(), false, duty, pulse)
+                        waitingLatrCoarse(voltageList[i].toFloat())
+                        fineLatr(voltageList[i].toFloat())
+                        if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
+                            setCause("Коэфицент трансформации сильно отличается")
+                        }
+
                         appendOneMessageToLog("Регулировка окончена")
-//                        communicationModel.onPRlMDO6()
-//                        sleep(3000)
-//                        communicationModel.offPRMDO6()
-//                        communicationModel.onPRMDO5()
-//                        communicationModel.offPRMDO5()
+                        Thread {
+                            communicationModel.таймер_On()
+                            communicationModel.таймер_Off()
+                            communicationModel.звук_On()
+                            sleep(3000)
+                            communicationModel.звук_Off()
+                        }.start()
                     }
 
                     time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
@@ -467,9 +475,13 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                             time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
                         }
                     }
-//                    communicationModel.onPRMDO6()
-//                    sleep(1500)
-//                    communicationModel.offPRMDO6()
+
+                    Thread {
+                        communicationModel.звук_On()
+                        sleep(1500)
+                        communicationModel.звук_Off()
+                    }.start()
+
                     voltageList = currentTestItem.voltageResonance
                     timeSum += currentTestItem.timesResonance[i]
                     stackTriples[i].first.isDisable = true
@@ -477,16 +489,24 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             }
 
             isNeedToRefresh = false
-//            communicationModel.startUpLATRFast(1f, true)
-//            while (measuringU > 800) {
-//                sleep(10)
-//            }
-//            communicationModel.stopLATR()
-////            resetOmik()
-//            communicationModel.stopObject()
-//            sleep(3000)
-//            communicationModel.offAllKms()
-//            sleep(50)
+            communicationModel.startUpLATRFast(1f, true)
+            while (measuringU > 1000) {
+                sleep(10)
+            }
+            communicationModel.stopLATR()
+            resetOmik()
+            communicationModel.stopObject()
+            var timeToSleep = 300
+            while (isExperimentRunning && (timeToSleep-- > 0)) {
+                sleep(10)
+            }
+            communicationModel.offAllKms()
+
+            timeToSleep = 200
+            while (isExperimentRunning && (timeToSleep-- > 0)) {
+                sleep(10)
+            }
+
             communicationModel.finalizeAllDevices()
 
             if (cause != "") {
@@ -510,7 +530,6 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 buttonNext.isDisable = false
                 buttonCancelAll.isDisable = false
             }
-
         }.start()
     }
 
@@ -611,19 +630,20 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         appendOneMessageToLog("Грубая регулировка")
         while (isExperimentRunning && isDevicesResponding && (measuringU <= voltage - 1000 || measuringU > voltage + 750)) {
             if (measuringU <= voltage - 1000) {
-                communicationModel.startUpLATRFast(380f, false)
+                sleep(10)
             } else if (measuringU > voltage + 750) {
-                communicationModel.startUpLATRFast(1f, false)
+                sleep(10)
             } else {
                 break
             }
         }
-        communicationModel.stopLATR()
 
-        while (isExperimentRunning && isDevicesResponding && (measuringU <= voltage - 300 && measuringU > voltage + 300)) {
-            if (measuringU <= voltage - 300) {
+//        communicationModel.stopLATR()
+
+        while (isExperimentRunning && isDevicesResponding && (measuringU <= voltage - 500 && measuringU > voltage + 500)) {
+            if (measuringU <= voltage - 500) {
                 communicationModel.startUpLATRSlow(380f, false)
-            } else if (measuringU > voltage + 300) {
+            } else if (measuringU > voltage + 500) {
                 communicationModel.startUpLATRSlow(1f, false)
             } else {
                 break
@@ -639,11 +659,11 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         sleep(1000)
         while ((measuringU <= voltage - 150 || measuringU > voltage + 150) && isExperimentRunning) {
             if (measuringU <= voltage - 150) {
-                communicationModel.startUpLATRFast(380f, false)
+                communicationModel.startUpLATRSlow(380f, false)
                 sleep(1750)
                 communicationModel.stopLATR()
             } else if (measuringU >= voltage + 150) {
-                communicationModel.startUpLATRFast(1f, false)
+                communicationModel.startUpLATRSlow(1f, false)
                 sleep(1750)
                 communicationModel.stopLATR()
             }
@@ -677,6 +697,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         if (statusEndsVFD == OMIK_DOWN_END) {
             appendOneMessageToLog("ОМИК в нижнем положении")
         }
+        communicationModel.stopObject()
     }
 
     private fun appendMessageToLog(message: String) {
@@ -730,7 +751,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     isOwenPRResponding = value as Boolean
                     Platform.runLater { deviceStateCirclePR200.fill = if (value) Color.LIME else Color.RED }
                 }
-                OwenPRModel.PRI1 -> {
+                OwenPRModel.PRIM1 -> {
                     isStartButtonOn = value as Boolean
                 }
             }
@@ -741,7 +762,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     Platform.runLater { deviceStateCirclePM130.fill = if (value) Color.LIME else Color.RED }
                 }
                 PM130Model.I1_PARAM -> {
-                    measuringIA = value as Float * 16
+                    measuringIA = value as Float * 20
                     val IA = String.format("%.4f", measuringIA)
                     experiment1Model!!.currentA = IA
                     if (measuringIA > 45) {
@@ -749,7 +770,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     }
                 }
                 PM130Model.I2_PARAM -> {
-                    measuringIB = value as Float * 2
+                    measuringIB = value as Float
                     val IB = String.format("%.4f", measuringIB)
                     experiment1Model!!.currentB = IB
                     if (measuringIB > 45) {
@@ -757,7 +778,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     }
                 }
                 PM130Model.I3_PARAM -> {
-                    measuringIC = value as Float * 16 //TODO ТОП УЗНАТЬ
+                    measuringIC = value as Float * 20
                     val IC = String.format("%.4f", measuringIC)
                     experiment1Model!!.currentC = IC
                     if (measuringIC > 45) {
@@ -803,17 +824,19 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 }
             }
 
-//            KILOAVEM_ID -> when (param) {
-//                AvemVoltmeterModel.RESPONDING_PARAM -> {
-//                    isKiloAvemResponding = value as Boolean
-//                    Platform.runLater { deviceStateCircleKiloAvem.fill = if (value) Color.LIME else Color.RED }
-//                }
-//                AvemVoltmeterModel.U_RMS_PARAM -> {
-//                    measuringU = (value as Float)
-//                    val kiloAvemU = String.format("%.2f", measuringU)
-//                    experiment1Model!!.voltage = kiloAvemU
-//                }
-//            }
+            KILOAVEM_ID -> when (param) {
+                AvemVoltmeterModel.RESPONDING_PARAM -> {
+                    isKiloAvemResponding = value as Boolean
+                    Platform.runLater { deviceStateCircleKiloAvem.fill = if (value) Color.LIME else Color.RED }
+                }
+                AvemVoltmeterModel.U_RMS_PARAM -> {
+                    if (value as Float > 1f) {
+                        measuringU = (value as Float)
+                        val kiloAvemU = String.format("%.2f", measuringU)
+                        experiment1Model!!.voltage = kiloAvemU
+                    }
+                }
+            }
 
             LATR_ID -> when (param) {
                 LatrModel.RESPONDING_PARAM -> {
@@ -826,8 +849,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     checkLatrStatus()
                 }
                 LatrModel.U_PARAM -> {
-                    measuringULatr = (value as Float)
-                    experiment1Model!!.voltage = measuringULatr.toString()
+                    measuringULatr = (value as Float) * 165
                 }
             }
         }
@@ -873,10 +895,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     private fun checkEndsVFDStatus() {
         when (statusEndsVFD) {
             OMIK_UP_END -> {
-                appendOneMessageToLog("Замкнут верхний концевик ОМИКа.")
+                Log.d("", "Замкнут верхний концевик ОМИКа.")
             }
             OMIK_DOWN_END -> {
-                appendOneMessageToLog("Замкнут нижний концевик ОМИКа.")
+                Log.d("", "Замкнут нижний концевик ОМИКа.")
             }
             OMIK_BOTH_END -> {
                 setCause("Замкнуты оба концевика ОМИКа.")

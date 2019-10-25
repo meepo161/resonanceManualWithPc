@@ -42,6 +42,7 @@ public class CommunicationModel extends Observable implements Observer {
     public LatrController latrController;
 
     private int kms1;
+    private int kms2;
 
     private boolean lastOne;
     private boolean isFinished;
@@ -202,11 +203,15 @@ public class CommunicationModel extends Observable implements Observer {
     public void offAllKms() {
         kms1 = 0;
         writeToKms1Register(kms1);
+        kms2 = 0;
+        writeToKms2Register(kms2);
     }
 
     public void onAllKms() {
         kms1 = 1;
         writeToKms1Register(kms1);
+        kms2 = 1;
+        writeToKms2Register(kms2);
     }
 
     private void writeToKms1Register(int value) {
@@ -227,7 +232,7 @@ public class CommunicationModel extends Observable implements Observer {
         } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {
         }
         Logger.withTag("DEBUG_TAG").log("numberOfRegister=" + numberOfRegister + " kms=" + kms);
-        Logger.withTag("DEBUG_TAG").log("1=" + kms1);
+        Logger.withTag("DEBUG_TAG").log("1=" + kms1 + " 2=" + kms2);
     }
 
     public void offRegisterInTheKms(int numberOfRegister, int kms) {
@@ -240,7 +245,7 @@ public class CommunicationModel extends Observable implements Observer {
         } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {
         }
         Logger.withTag("DEBUG_TAG").log("numberOfRegister=" + numberOfRegister + " kms=" + kms);
-        Logger.withTag("DEBUG_TAG").log("1=" + kms1);
+        Logger.withTag("DEBUG_TAG").log("1=" + kms1 + " 2=" + kms2);
     }
 
     public void initOwenPrController() {
@@ -360,14 +365,14 @@ public class CommunicationModel extends Observable implements Observer {
         voltage *= 1.1f;
         int minDutty = 400;
         int maxDutty = 200;
-        float corridor = 0.4f;
-        float delta = 0.02f;
+        float corridor = 0.01f;
+        float delta = 0.01f;
         int timeMinPulse = 50;
         int timeMaxPulse = 300;
-        float timeMinPulsePercent = 50.0f;
-        float timeMaxPulsePercent = 20.0f;
-        float minDuttyPercent = 80.0f;
-        float maxDuttyPercent = 82.0f;
+        float timeMinPulsePercent = 70.0f;
+        float timeMaxPulsePercent = 70.0f;
+        float minDuttyPercent = 25.0f;
+        float maxDuttyPercent = 25.0f;
         float timeMinPeriod = 10.0f;
         float timeMaxPeriod = 100.0f;
         float minVoltage = 200f;
@@ -408,8 +413,8 @@ public class CommunicationModel extends Observable implements Observer {
         pm130Controller.resetAllAttempts();
         avemVoltmeterController.setNeedToRead(true);
         avemVoltmeterController.resetAllAttempts();
-//        avemKiloVoltmeterController.setNeedToRead(true);
-//        avemKiloVoltmeterController.resetAllAttempts();
+        avemKiloVoltmeterController.setNeedToRead(true);
+        avemKiloVoltmeterController.resetAllAttempts();
         owenPRController.setNeedToRead(true);
         owenPRController.resetAllAttempts();
         latrController.setNeedToRead(true);
@@ -423,69 +428,86 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.resetAllAttempts();
     }
 
-    public void onPRO1() {
+    public void разрешениеНаЗапуск_On() {
         onRegisterInTheKms(1, 1);
     }
 
-    public void onPRO2() {
+    public void короткозамыкатель_On() {
         onRegisterInTheKms(2, 1);
     }
 
-    public void onPRO3() {
+    public void приемКоманды_On() {
         onRegisterInTheKms(3, 1);
     }
 
-    public void onPRO4() {
+    public void последовательнаяСхема_On() {
         onRegisterInTheKms(4, 1);
     }
 
-    public void onPRO5() {
+    public void параллельнаяСхема_On() {
         onRegisterInTheKms(5, 1);
     }
 
-    public void onPRO6() {
+    public void авэм_On() {
         onRegisterInTheKms(6, 1);
     }
 
-    public void onPRO7() {
+    public void звук_On() {
         onRegisterInTheKms(7, 1);
     }
 
-    public void onPRO8() {
-        onRegisterInTheKms(8, 1);
+    public void таймер_On() {
+        offRegisterInTheKms(8, 1);
     }
 
-    public void offPRO1() {
+    public void разрешениеНаЗапуск_Off() {
         offRegisterInTheKms(1, 1);
     }
 
-    public void offPRO2() {
+    public void короткозамыкатель_Off() {
         offRegisterInTheKms(2, 1);
     }
 
-    public void offPRO3() {
+    public void приемКоманды_Off() {
         offRegisterInTheKms(3, 1);
     }
 
-    public void offPRO4() {
+    public void последовательнаяСхема_Off() {
         offRegisterInTheKms(4, 1);
     }
 
-    public void offPRO5() {
+    public void параллельнаяСхема_Off() {
         offRegisterInTheKms(5, 1);
     }
 
-    public void offPRO6() {
+    public void авэм_Off() {
         offRegisterInTheKms(6, 1);
     }
 
-    public void offPRO7() {
+    public void звук_Off() {
         offRegisterInTheKms(7, 1);
     }
 
-    public void offPRO8() {
+    public void таймер_Off() {
         offRegisterInTheKms(8, 1);
     }
+
+    public void подсветкаТаймер_On() {
+        onRegisterInTheKms(1, 2);
+    }
+
+    public void подсветкаНапряжения_On() {
+        onRegisterInTheKms(2, 2);
+    }
+
+    public void подсветкаТаймер_Off() {
+        offRegisterInTheKms(1, 2);
+    }
+
+    public void подсветкаНапряжения_Off() {
+        offRegisterInTheKms(2, 2);
+    }
+
 
     public void setDeviceStateOn(boolean deviceStateOn) {
         isDeviceStateOn = deviceStateOn;

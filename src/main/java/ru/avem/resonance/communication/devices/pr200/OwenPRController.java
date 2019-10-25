@@ -89,7 +89,7 @@ public class OwenPRController implements DeviceController {
             if (thereAreReadAttempts()) {
                 readAttempt--;
                 ModbusController.RequestStatus status = modbusController.readInputRegisters(
-                        address, STATES_PROTECTIONS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+                        address, STATES_BUTTONS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
                 if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
                     model.setReadResponding(true);
                     resetReadAttempts();

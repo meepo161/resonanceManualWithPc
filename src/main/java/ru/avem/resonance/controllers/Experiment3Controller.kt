@@ -266,12 +266,11 @@ class Experiment3Controller : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
                 appendOneMessageToLog("Запускаем ЧП")
-                communicationModel.onPRO4()
+//                communicationModel.прием_команды_on()
                 resetOmik()
             }
 
             if (isExperimentRunning) {
-                communicationModel.onPRO3()
 //                appendOneMessageToLog("Поднимаем напряжение на объекте испытания до $firstVoltageLatr")
 //                communicationModel.startUpLATR(firstVoltageLatr, true)
 //                waitingLatrCoarse(firstVoltageLatr)
