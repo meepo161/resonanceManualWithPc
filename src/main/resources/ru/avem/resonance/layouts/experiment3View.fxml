@@ -92,7 +92,7 @@
                                                 <HBox alignment="CENTER_RIGHT" spacing="16.0">
                                                     <children>
                                                         <Label text="Парма"/>
-                                                        <Circle fx:id="deviceStateCircleParma" fill="DODGERBLUE"
+                                                        <Circle fx:id="deviceStateCirclePM130" fill="DODGERBLUE"
                                                                 radius="14.0" stroke="BLACK" strokeType="INSIDE"/>
                                                     </children>
                                                 </HBox>

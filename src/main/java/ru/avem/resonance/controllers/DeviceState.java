@@ -7,8 +7,8 @@ import javafx.scene.shape.Circle;
 import ru.avem.resonance.communication.devices.avem_voltmeter.AvemVoltmeterModel;
 import ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Model;
 import ru.avem.resonance.communication.devices.latr.LatrModel;
+import ru.avem.resonance.communication.devices.pm130.PM130Model;
 import ru.avem.resonance.communication.devices.pr200.OwenPRModel;
-import ru.avem.resonance.communication.devices.parmaT400.ParmaT400Model;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -18,7 +18,7 @@ import static ru.avem.resonance.communication.devices.DeviceController.*;
 public class DeviceState implements Observer {
 
     @FXML
-    protected Circle deviceStateCircleParma;
+    protected Circle deviceStateCirclePM130;
     @FXML
     protected Circle deviceStateCircleAvem;
     @FXML
@@ -37,9 +37,9 @@ public class DeviceState implements Observer {
         int param = (int) (((Object[]) values)[1]);
         Object value = (((Object[]) values)[2]);
         switch (modelId) {
-            case PARMA400_ID:
-                if (param == ParmaT400Model.RESPONDING_PARAM) {
-                    Platform.runLater(() -> deviceStateCircleParma.setFill(((boolean) value) ? Color.LIME : Color.RED));
+            case PM130_ID:
+                if (param == PM130Model.RESPONDING_PARAM) {
+                    Platform.runLater(() -> deviceStateCirclePM130.setFill(((boolean) value) ? Color.LIME : Color.RED));
                 }
                 break;
             case PR200_ID:

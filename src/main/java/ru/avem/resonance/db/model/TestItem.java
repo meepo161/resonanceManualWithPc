@@ -23,16 +23,25 @@ public class TestItem {
     private ArrayList<Double> voltageResonance = new ArrayList<>();
 
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
+    private ArrayList<Double> speedResonance = new ArrayList<>();
+
+    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> timesViu = new ArrayList<>();
 
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> voltageViu = new ArrayList<>();
 
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
+    private ArrayList<Double> speedViu = new ArrayList<>();
+
+    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> timesViuDC = new ArrayList<>();
 
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> voltageViuDC = new ArrayList<>();
+
+    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
+    private ArrayList<Double> speedViuDC = new ArrayList<>();
 
     public TestItem() {
         // ORMLite needs a no-arg constructor
@@ -45,17 +54,23 @@ public class TestItem {
     public TestItem(String type,
                     ArrayList<Double> timesResonance,
                     ArrayList<Double> voltageResonance,
+                    ArrayList<Double> speedResonance,
                     ArrayList<Double> timesViu,
                     ArrayList<Double> voltageViu,
+                    ArrayList<Double> speedViu,
                     ArrayList<Double> timesViuDC,
-                    ArrayList<Double> voltageViuDC) {
+                    ArrayList<Double> voltageViuDC,
+                    ArrayList<Double> speedViuDC) {
         this.type = type;
         this.timesResonance = timesResonance;
         this.voltageResonance = voltageResonance;
+        this.speedResonance = speedResonance;
         this.timesViu = timesViu;
         this.voltageViu = voltageViu;
+        this.speedViu = speedViu;
         this.timesViuDC = timesViuDC;
         this.voltageViuDC = voltageViuDC;
+        this.speedViuDC = speedViuDC;
     }
 
     public long getId() {
@@ -122,6 +137,30 @@ public class TestItem {
         this.voltageViuDC = voltageViuDC;
     }
 
+    public ArrayList<Double> getSpeedResonance() {
+        return speedResonance;
+    }
+
+    public void setSpeedResonance(ArrayList<Double> speedResonance) {
+        this.speedResonance = speedResonance;
+    }
+
+    public ArrayList<Double> getSpeedViu() {
+        return speedViu;
+    }
+
+    public void setSpeedViu(ArrayList<Double> speedViu) {
+        this.speedViu = speedViu;
+    }
+
+    public ArrayList<Double> getSpeedViuDC() {
+        return speedViuDC;
+    }
+
+    public void setSpeedViuDC(ArrayList<Double> speedViuDC) {
+        this.speedViuDC = speedViuDC;
+    }
+
     @Override
     public String toString() {
         return type;
@@ -136,14 +175,17 @@ public class TestItem {
                 Objects.equals(type, testItem.type) &&
                 Objects.equals(timesResonance, testItem.timesResonance) &&
                 Objects.equals(voltageResonance, testItem.voltageResonance) &&
+                Objects.equals(speedResonance, testItem.speedResonance) &&
                 Objects.equals(timesViu, testItem.timesViu) &&
                 Objects.equals(voltageViu, testItem.voltageViu) &&
+                Objects.equals(speedViu, testItem.speedViu) &&
                 Objects.equals(timesViuDC, testItem.timesViuDC) &&
-                Objects.equals(voltageViuDC, testItem.voltageViuDC);
+                Objects.equals(voltageViuDC, testItem.voltageViuDC) &&
+                Objects.equals(speedViuDC, testItem.speedViuDC);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type, timesResonance, voltageResonance, timesViu, voltageViu, timesViuDC, voltageViuDC);
+        return Objects.hash(id, type, timesResonance, voltageResonance, speedResonance, timesViu, voltageViu, speedViu, timesViuDC, voltageViuDC, speedViuDC);
     }
 }

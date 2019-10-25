@@ -7,14 +7,13 @@ import java.nio.ByteBuffer;
 import java.util.Observer;
 
 public class OwenPRController implements DeviceController {
-    public static final short INSTANT_STATES_REGISTER = 512;
-    public static final short FIXED_STATES_REGISTER = 513;
-    public static final short RES_REGISTER = 514;
-    public static final short KMS1_REGISTER = 515;
-    public static final short KMS2_REGISTER = 516;
-    public static final short RESET_DOG = 517;
+    public static final short STATES_PROTECTIONS_REGISTER = 513;
+    public static final short MODE_REGISTER = 514;
+    public static final short STATES_BUTTONS_REGISTER = 515;
+    public static final short KMS1_REGISTER = 516;
+    public static final short KMS2_REGISTER = 517;
+    public static final short RESET_DOG = 512;
     public static final short RESET_TIMER = 518;
-    public static final short KMS3_REGISTER = 519;
 
     private static final int NUM_OF_WORDS_IN_REGISTER = 1;
     private static final short NUM_OF_REGISTERS = 2 * NUM_OF_WORDS_IN_REGISTER;
@@ -60,26 +59,53 @@ public class OwenPRController implements DeviceController {
 
     @Override
     public void read(Object... args) {
-        ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
-        if (thereAreReadAttempts()) {
-            readAttempt--;
-            ModbusController.RequestStatus status = modbusController.readInputRegisters(
-                    address, INSTANT_STATES_REGISTER, NUM_OF_REGISTERS, inputBuffer);
-            if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
-                model.setReadResponding(true);
-                resetReadAttempts();
-                model.setInstantInputStatus(inputBuffer.getShort());
-                model.setFixedInputStatus(inputBuffer.getShort());
-                resetReadAttemptsOfAttempts();
+        int type = (int) args[0];
+        if (type == 0) {
+            ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+            if (thereAreReadAttempts()) {
+                readAttempt--;
+                ModbusController.RequestStatus status = modbusController.readInputRegisters(
+                        address, STATES_PROTECTIONS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+                if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                    model.setReadResponding(true);
+                    resetReadAttempts();
+                    model.setStatesProtections(inputBuffer.getShort());
+                    model.setMode(inputBuffer.getShort());
+//                model.setStatesButtons(inputBuffer.getShort());
+                    resetReadAttemptsOfAttempts();
+                } else {
+                    read(args);
+                }
             } else {
-                read(args);
+                readAttemptOfAttempt--;
+                if (readAttemptOfAttempt <= 0) {
+                    model.setReadResponding(false);
+                } else {
+                    resetReadAttempts();
+                }
             }
-        } else {
-           readAttemptOfAttempt--;
-            if (readAttemptOfAttempt <= 0) {
-                model.setReadResponding(false);
+        } else if (type == 1) {
+            ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+            if (thereAreReadAttempts()) {
+                readAttempt--;
+                ModbusController.RequestStatus status = modbusController.readInputRegisters(
+                        address, STATES_PROTECTIONS_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+                if (status.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                    model.setReadResponding(true);
+                    resetReadAttempts();
+                    model.setStatesButtons(inputBuffer.getShort());
+                    inputBuffer.getShort();
+                    resetReadAttemptsOfAttempts();
+                } else {
+                    read(args);
+                }
             } else {
-                resetReadAttempts();
+                readAttemptOfAttempt--;
+                if (readAttemptOfAttempt <= 0) {
+                    model.setReadResponding(false);
+                } else {
+                    resetReadAttempts();
+                }
             }
         }
     }

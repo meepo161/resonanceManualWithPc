@@ -15,3 +15,7 @@
     -fx-font-weight: bold;
     -fx-font-size: 14;
  }
+
+ .default-color0.chart-line-symbol {
+     -fx-background-color: transparent;
+ }

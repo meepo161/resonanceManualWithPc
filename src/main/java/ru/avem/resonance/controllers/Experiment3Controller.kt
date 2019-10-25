@@ -23,7 +23,7 @@ import ru.avem.resonance.communication.devices.DeviceController.*
 import ru.avem.resonance.communication.devices.avem_voltmeter.AvemVoltmeterModel
 import ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Model
 import ru.avem.resonance.communication.devices.latr.LatrModel
-import ru.avem.resonance.communication.devices.parmaT400.ParmaT400Model
+import ru.avem.resonance.communication.devices.pm130.PM130Model
 import ru.avem.resonance.communication.devices.pr200.OwenPRModel
 import ru.avem.resonance.communication.modbus.utils.Utils
 import ru.avem.resonance.model.Experiment3Model
@@ -115,17 +115,17 @@ class Experiment3Controller : DeviceState(), ExperimentController {
     @Volatile
     private var measuringIAvem: Float = 0.0f
     @Volatile
-    private var measuringIA: Double = 0.0
+    private var measuringIA: Float = 0.0f
     @Volatile
-    private var measuringIB: Double = 0.0
+    private var measuringIB: Float = 0.0f
     @Volatile
-    private var measuringIC: Double = 0.0
+    private var measuringIC: Float = 0.0f
     @Volatile
     private var isSchemeReady: Boolean = false
     @Volatile
     private var isStartButtonOn: Boolean = false
     @Volatile
-    private var measuringF: Double = 0.0
+    private var measuringF: Float = 0.0f
 
     @Volatile
     private var statusEndsVFD: Short = 0
@@ -502,37 +502,37 @@ class Experiment3Controller : DeviceState(), ExperimentController {
                 }
             }
 
-            PARMA400_ID -> when (param) {
-                ParmaT400Model.RESPONDING_PARAM -> {
+            PM130_ID -> when (param) {
+                PM130Model.RESPONDING_PARAM -> {
                     isParmaResponding = value as Boolean
-                    Platform.runLater { deviceStateCircleParma.fill = if (value) Color.LIME else Color.RED }
+                    Platform.runLater { deviceStateCirclePM130.fill = if (value) Color.LIME else Color.RED }
                 }
-                ParmaT400Model.IA_PARAM -> {
-                    measuringIA = value as Double * 16
+                PM130Model.I1_PARAM -> {
+                    measuringIA = value as Float * 16
                     val IA = String.format("%.4f", measuringIA)
                     experiment3Model!!.currentA = IA
                     if (measuringIA > 45) {
                         appendMessageToLog("Ток А превышает 45А")
                     }
                 }
-                ParmaT400Model.IB_PARAM -> {
-                    measuringIB = value as Double * 2
+                PM130Model.I2_PARAM -> {
+                    measuringIB = value as Float * 2
                     val IB = String.format("%.4f", measuringIB)
                     experiment3Model!!.currentB = IB
                     if (measuringIB > 45) {
                         appendMessageToLog("Ток B превышает 45А")
                     }
                 }
-                ParmaT400Model.IC_PARAM -> {
-                    measuringIC = value as Double * 16
+                PM130Model.I3_PARAM -> {
+                    measuringIC = value as Float * 16
                     val IC = String.format("%.4f", measuringIC)
                     experiment3Model!!.currentC = IC
                     if (measuringIC > 45) {
                         appendMessageToLog("Ток C превышает 45А")
                     }
                 }
-                ParmaT400Model.F_PARAM -> {
-                    measuringF = value as Double
+                PM130Model.F_PARAM -> {
+                    measuringF = value as Float
                     val FParma = String.format("%.2f", measuringF)
                     experiment3Model!!.frequency = FParma
                 }

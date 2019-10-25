@@ -39,10 +39,10 @@ public final class Constants {
         public static final String LATR_TIME_ENDED = "84";
         public static final String LATR_ZASTRYAL = "85";
 
-        public static final Short OMIK_UP_END = 59;
-        public static final Short OMIK_DOWN_END = 55;
-        public static final Short OMIK_BOTH_END = 51;
-        public static final Short OMIK_NOONE_END = 63;
+        public static final Short OMIK_DOWN_END = 59;
+        public static final Short OMIK_UP_END = 55;
+        public static final Short OMIK_BOTH_END = 63;
+        public static final Short OMIK_NOONE_END = 51;
     }
 
     public static final class Vfd {

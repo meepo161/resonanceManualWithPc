@@ -197,13 +197,13 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                     numBytesRead = usbIrp.getActualLength();
                     System.arraycopy(mReadBuffer, 0, dest, 0, numBytesRead);
                 } catch (UsbException e) {
-                    System.out.println("readPipe is already open");
+//                    System.out.println("readPipe is already open");
                     inputPipe.abortAllSubmissions();
                 } finally {
                     try {
                         inputPipe.close();
                     } catch (UsbException e) {
-                        System.out.println("readPipe is still busy");
+//                        System.out.println("readPipe is still busy");
                         inputPipe.abortAllSubmissions();
                     }
                 }
@@ -247,7 +247,7 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
                 try {
                     outputPipe.close();
                 } catch (UsbException e) {
-                    System.out.println("writePipe is still busy");
+//                    System.out.println("writePipe is still busy");
                     outputPipe.abortAllSubmissions();
                 }
             }

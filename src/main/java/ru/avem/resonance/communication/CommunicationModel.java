@@ -7,7 +7,7 @@ import ru.avem.resonance.communication.devices.DeviceController;
 import ru.avem.resonance.communication.devices.avem_voltmeter.AvemVoltmeterController;
 import ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Controller;
 import ru.avem.resonance.communication.devices.latr.LatrController;
-import ru.avem.resonance.communication.devices.parmaT400.ParmaT400Controller;
+import ru.avem.resonance.communication.devices.pm130.PM130Controller;
 import ru.avem.resonance.communication.devices.pr200.OwenPRController;
 import ru.avem.resonance.communication.modbus.ModbusController;
 import ru.avem.resonance.communication.modbus.RTUController;
@@ -37,7 +37,7 @@ public class CommunicationModel extends Observable implements Observer {
     public OwenPRController owenPRController;
     public AvemVoltmeterController avemVoltmeterController;
     public AvemVoltmeterController avemKiloVoltmeterController;
-    public ParmaT400Controller parmaT400Controller;
+    public PM130Controller pm130Controller;
     public DeltaCP2000Controller deltaCP2000Controller;
     public LatrController latrController;
 
@@ -55,22 +55,22 @@ public class CommunicationModel extends Observable implements Observer {
         connectMainBus();
         ModbusController modbusController = new RTUController(RS485Connection);
 
-        parmaT400Controller = new ParmaT400Controller(1, this, modbusController, PARMA400_ID);
-        devicesControllers.add(parmaT400Controller);
+        pm130Controller = new PM130Controller(0x29, this, modbusController, PM130_ID);
+        devicesControllers.add(pm130Controller);
 
-        avemVoltmeterController = new AvemVoltmeterController(2, this, modbusController, AVEM_ID);
+        avemVoltmeterController = new AvemVoltmeterController(0x0B, this, modbusController, AVEM_ID);
         devicesControllers.add(avemVoltmeterController);
 
-        owenPRController = new OwenPRController(3, this, modbusController, PR200_ID);
+        owenPRController = new OwenPRController(0x04, this, modbusController, PR200_ID);
         devicesControllers.add(owenPRController);
 
-        latrController = new LatrController(0xFA, this, modbusController, LATR_ID);
+        latrController = new LatrController(0xF0, this, modbusController, LATR_ID);
         devicesControllers.add(latrController);
 
-        deltaCP2000Controller = new DeltaCP2000Controller(5, this, modbusController, DELTACP2000_ID);
+        deltaCP2000Controller = new DeltaCP2000Controller(0x5B, this, modbusController, DELTACP2000_ID);
         devicesControllers.add(deltaCP2000Controller);
 
-        avemKiloVoltmeterController = new AvemVoltmeterController(6, this, modbusController, KILOAVEM_ID);
+        avemKiloVoltmeterController = new AvemVoltmeterController(0x15, this, modbusController, KILOAVEM_ID);
         devicesControllers.add(avemKiloVoltmeterController);
 
         new Thread(() -> {
@@ -81,7 +81,7 @@ public class CommunicationModel extends Observable implements Observer {
                             for (int i = 0; i <= 2; i++) {
                                 deviceController.read(i);
                             }
-                        } else if (deviceController instanceof ParmaT400Controller) {
+                        } else if (deviceController instanceof PM130Controller) {
                             for (int i = 1; i <= 3; i++) {
                                 deviceController.read(i);
                             }
@@ -89,7 +89,11 @@ public class CommunicationModel extends Observable implements Observer {
                             for (int i = 0; i <= 1; i++) {
                                 deviceController.read(i);
                             }
-                        }  else if (deviceController instanceof AvemVoltmeterController) {
+                        } else if (deviceController instanceof AvemVoltmeterController) {
+                            for (int i = 0; i <= 1; i++) {
+                                deviceController.read(i);
+                            }
+                        } else if (deviceController instanceof OwenPRController) {
                             for (int i = 0; i <= 1; i++) {
                                 deviceController.read(i);
                             }
@@ -135,7 +139,7 @@ public class CommunicationModel extends Observable implements Observer {
         avemVoltmeterController.setNeedToRead(isNeed);
         avemKiloVoltmeterController.setNeedToRead(isNeed);
         deltaCP2000Controller.setNeedToRead(isNeed);
-        parmaT400Controller.setNeedToRead(isNeed);
+        pm130Controller.setNeedToRead(isNeed);
         latrController.setNeedToRead(isNeed);
     }
 
@@ -149,7 +153,7 @@ public class CommunicationModel extends Observable implements Observer {
         avemVoltmeterController.resetAllAttempts();
         avemKiloVoltmeterController.resetAllAttempts();
         deltaCP2000Controller.resetAllAttempts();
-        parmaT400Controller.resetAllAttempts();
+        pm130Controller.resetAllAttempts();
         latrController.resetAllAttempts();
     }
 
@@ -168,10 +172,6 @@ public class CommunicationModel extends Observable implements Observer {
             RS485Connection.closeConnection();
             RS485Connection.initConnection();
         }
-    }
-
-    public void deinitPR() {
-        owenPRController.write(RES_REGISTER, 1, 0);
     }
 
     public void finalizeAllDevices() {
@@ -248,7 +248,7 @@ public class CommunicationModel extends Observable implements Observer {
         owenPRController.setNeedToRead(true);
         offAllKms();
         resetTimer();
-        owenPRController.write(RES_REGISTER, 1, 1);
+        owenPRController.write(MODE_REGISTER, 1, 1);
     }
 
     public void startObject() {
@@ -295,14 +295,14 @@ public class CommunicationModel extends Observable implements Observer {
         voltage *= 1.1f;
         int minDutty = 400;
         int maxDutty = 200;
-        float corridor = 0.25f;
+        float corridor = 0.01f;
         float delta = 0.02f;
         int timeMinPulse = 50;
         int timeMaxPulse = 300;
-        float timeMinPulsePercent = 70.0f;
-        float timeMaxPulsePercent = 40.0f;
-        float minDuttyPercent = 50.0f;
-        float maxDuttyPercent = 60.0f;
+        float timeMinPulsePercent = 100.0f;
+        float timeMaxPulsePercent = 95.0f;
+        float minDuttyPercent = 100.0f;
+        float maxDuttyPercent = 95.0f;
         float timeMinPeriod = 10.0f;
         float timeMaxPeriod = 100.0f;
         float minVoltage = 200f;
@@ -325,6 +325,33 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.write(START_STOP_REGISTER, 1);
     }
 
+    public void startUpLATRWithRegulationSpeed(float voltage, boolean isNeedReset, float dutty, float timeMaxPulsePercent) {
+        Logger.withTag("STARTUP_LATR").log("startUpLATR");
+        if (isNeedReset) {
+            latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
+        }
+        voltage *= 1.1f;
+        float corridor = 0.01f;
+        float delta = 0.02f;
+        float timeMinPulsePercent = 100.0f;
+        float timeMinPeriod = 10.0f;
+        float timeMaxPeriod = 100.0f;
+        float minVoltage = 200f;
+        Logger.withTag("REGULATION").log("voltage=" + voltage);
+        latrController.write(VALUE_REGISTER, voltage);
+        latrController.write(IR_TIME_PERIOD_MIN, timeMinPulsePercent);
+        latrController.write(IR_TIME_PERIOD_MAX, timeMaxPulsePercent);
+        latrController.write(IR_TIME_PULSE_MIN_PERCENT, timeMinPeriod);
+        latrController.write(IR_TIME_PULSE_MAX_PERCENT, timeMaxPeriod);
+        latrController.write(IR_DUTY_MIN_PERCENT, dutty);
+        latrController.write(IR_DUTY_MAX_PERCENT, dutty);
+        latrController.write(REGULATION_TIME_REGISTER, 300000);
+        latrController.write(CORRIDOR_REGISTER, corridor);
+        latrController.write(DELTA_REGISTER, delta);
+        latrController.write(MIN_VOLTAGE_LIMIT_REGISTER, minVoltage);
+        latrController.write(START_STOP_REGISTER, 1);
+    }
+
     public void startUpLATRSlow(float voltage, boolean isNeedReset) {
         Logger.withTag("STARTUP_LATR").log("startUpLATR");
         if (isNeedReset) {
@@ -339,8 +366,8 @@ public class CommunicationModel extends Observable implements Observer {
         int timeMaxPulse = 300;
         float timeMinPulsePercent = 50.0f;
         float timeMaxPulsePercent = 20.0f;
-        float minDuttyPercent = 20.0f;
-        float maxDuttyPercent = 22.0f;
+        float minDuttyPercent = 80.0f;
+        float maxDuttyPercent = 82.0f;
         float timeMinPeriod = 10.0f;
         float timeMaxPeriod = 100.0f;
         float minVoltage = 200f;
@@ -372,17 +399,17 @@ public class CommunicationModel extends Observable implements Observer {
     }
 
     public void setKiloAvemShowValue(int value) {
-        avemKiloVoltmeterController.write(CHANGE_SHOW_VALUE , value);
+        avemKiloVoltmeterController.write(CHANGE_SHOW_VALUE, value);
     }
 
     public void initExperimentDevices() {
         resetTimer();
-        parmaT400Controller.setNeedToRead(true);
-        parmaT400Controller.resetAllAttempts();
+        pm130Controller.setNeedToRead(true);
+        pm130Controller.resetAllAttempts();
         avemVoltmeterController.setNeedToRead(true);
         avemVoltmeterController.resetAllAttempts();
-        avemKiloVoltmeterController.setNeedToRead(true);
-        avemKiloVoltmeterController.resetAllAttempts();
+//        avemKiloVoltmeterController.setNeedToRead(true);
+//        avemKiloVoltmeterController.resetAllAttempts();
         owenPRController.setNeedToRead(true);
         owenPRController.resetAllAttempts();
         latrController.setNeedToRead(true);
@@ -397,7 +424,7 @@ public class CommunicationModel extends Observable implements Observer {
     }
 
     public void onPRO1() {
-        onRegisterInTheKms(2, 1);
+        onRegisterInTheKms(1, 1);
     }
 
     public void onPRO2() {

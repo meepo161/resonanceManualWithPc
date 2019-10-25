@@ -23,24 +23,6 @@ public class OwenPRModel extends Observable {
     public static final int PRIM7 = 15;
     public static final int PRIM8 = 16;
 
-    public static final int PRI1_FIXED = 17;
-    public static final int PRI2_FIXED = 18;
-    public static final int PRI3_FIXED = 19;
-    public static final int PRI4_FIXED = 20;
-    public static final int PRI5_FIXED = 21;
-    public static final int PRI6_FIXED = 22;
-    public static final int PRI7_FIXED = 23;
-    public static final int PRI8_FIXED = 24;
-
-    public static final int PRIM1_FIXED = 25;
-    public static final int PRIM2_FIXED = 26;
-    public static final int PRIM3_FIXED = 27;
-    public static final int PRIM4_FIXED = 28;
-    public static final int PRIM5_FIXED = 29;
-    public static final int PRIM6_FIXED = 30;
-    public static final int PRIM7_FIXED = 31;
-    public static final int PRIM8_FIXED = 32;
-
     private int deviceID;
     private boolean readResponding;
     private boolean writeResponding;
@@ -69,24 +51,28 @@ public class OwenPRModel extends Observable {
         notice(RESPONDING_PARAM, readResponding && writeResponding);
     }
 
-    void setInstantInputStatus(short instantInputStatusInputStatus) {
-        notice(PRI1, (instantInputStatusInputStatus & 0b1) > 0);
-        notice(PRI2, (instantInputStatusInputStatus & 0b10) > 0);
-        notice(PRI3, (instantInputStatusInputStatus & 0b100) > 0);
-        notice(PRI4, (instantInputStatusInputStatus & 0b1000) > 0);
-        notice(PRI5, (instantInputStatusInputStatus & 0b10000) > 0);
-        notice(PRI6, (instantInputStatusInputStatus & 0b100000) > 0);
-        notice(PRI7, (instantInputStatusInputStatus & 0b1000000) > 0);
+    void setStatesProtections(short statesProtections) {
+        notice(PRIM2, (statesProtections & 0b1) > 0);
+        notice(PRIM4, (statesProtections & 0b10) > 0);
+        notice(PRIM5, (statesProtections & 0b100) > 0);
+        notice(PRIM3, (statesProtections & 0b1000) > 0);
+        notice(PRIM1, (statesProtections & 0b10000) > 0);
     }
 
-    void setFixedInputStatus(short fixedInputStatus) {
-        notice(PRI1_FIXED, (fixedInputStatus & 0b1) > 0);
-        notice(PRI2_FIXED, (fixedInputStatus & 0b10) > 0);
-        notice(PRI3_FIXED, (fixedInputStatus & 0b100) > 0);
-        notice(PRI4_FIXED, (fixedInputStatus & 0b1000) > 0);
-        notice(PRI5_FIXED, (fixedInputStatus & 0b10000) > 0);
-        notice(PRI6_FIXED, (fixedInputStatus & 0b100000) > 0);
-        notice(PRI7_FIXED, (fixedInputStatus & 0b1000000) > 0);
+    void setStatesButtons(short statesButtons) {
+        notice(PRI7, (statesButtons & 0b1) > 0);
+        notice(PRI8, (statesButtons & 0b10) > 0);
+        notice(PRIM6, (statesButtons & 0b100) > 0);
+        notice(PRIM7, (statesButtons & 0b1000) > 0);
+        notice(PRIM8, (statesButtons & 0b10000) > 0);
+    }
+
+    void setMode(short mode) {
+        notice(PRI1, (mode & 0b1) > 0);
+        notice(PRI2, (mode & 0b10) > 0);
+        notice(PRI3, (mode & 0b100) > 0);
+        notice(PRI4, (mode & 0b1000) > 0);
+        notice(PRI5, (mode & 0b10000) > 0);
     }
 
     private void notice(int param, Object value) {

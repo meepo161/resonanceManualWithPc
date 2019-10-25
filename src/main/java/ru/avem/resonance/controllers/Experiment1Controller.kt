@@ -11,6 +11,7 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.stage.Stage
+import ru.avem.resonance.Constants
 import ru.avem.resonance.Constants.Ends.*
 import ru.avem.resonance.Constants.Time.MILLS_IN_SEC
 import ru.avem.resonance.Constants.Vfd.VFD_FORWARD
@@ -21,7 +22,7 @@ import ru.avem.resonance.communication.devices.DeviceController.*
 import ru.avem.resonance.communication.devices.avem_voltmeter.AvemVoltmeterModel
 import ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Model
 import ru.avem.resonance.communication.devices.latr.LatrModel
-import ru.avem.resonance.communication.devices.parmaT400.ParmaT400Model
+import ru.avem.resonance.communication.devices.pm130.PM130Model
 import ru.avem.resonance.communication.devices.pr200.OwenPRModel
 import ru.avem.resonance.communication.modbus.utils.Utils
 import ru.avem.resonance.db.TestItemRepository
@@ -43,15 +44,11 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     @FXML
     lateinit var tableColumnU: TableColumn<Experiment1Model, String>
     @FXML
-    lateinit var tableColumnIA: TableColumn<Experiment1Model, String>
-    @FXML
     lateinit var tableColumnIB: TableColumn<Experiment1Model, String>
     @FXML
+    lateinit var tableColumnUOI: TableColumn<Experiment1Model, String>
+    @FXML
     lateinit var tableColumnIC: TableColumn<Experiment1Model, String>
-    @FXML
-    lateinit var tableColumnILeak: TableColumn<Experiment1Model, String>
-    @FXML
-    lateinit var tableColumnFrequency: TableColumn<Experiment1Model, String>
     @FXML
     lateinit var tableColumnResultExperiment1: TableColumn<Experiment1Model, String>
     @FXML
@@ -73,12 +70,14 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     @FXML
     lateinit var vBoxVoltage: VBox
     @FXML
+    lateinit var vBoxSpeed: VBox
+    @FXML
     lateinit var anchorPaneTimeTorque: AnchorPane
     @FXML
     lateinit var scrollPaneTimeTorque: ScrollPane
 
-    private lateinit var lastPair: Pair<TextField, TextField>
-    private val stackPairs: Stack<Pair<TextField, TextField>> = Stack()
+    private lateinit var lastTriple: Triple<TextField, TextField, TextField>
+    private val stackTriples: Stack<Triple<TextField, TextField, TextField>> = Stack()
 
     private val mainModel = MainModel.instance
     private val currentProtocol = mainModel.currentProtocol
@@ -128,17 +127,17 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     @Volatile
     private var measuringIAvem: Float = 0.0f
     @Volatile
-    private var measuringIA: Double = 0.0
+    private var measuringIA: Float = 0.0f
     @Volatile
-    private var measuringIB: Double = 0.0
+    private var measuringIB: Float = 0.0f
     @Volatile
-    private var measuringIC: Double = 0.0
+    private var measuringIC: Float = 0.0f
     @Volatile
     private var isSchemeReady: Boolean = false
     @Volatile
     private var isStartButtonOn: Boolean = false
     @Volatile
-    private var measuringF: Double = 0.0
+    private var measuringF: Float = 0.0f
 
     @Volatile
     private var statusEndsVFD: Short = 0
@@ -149,16 +148,23 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 
     private var voltageList: ArrayList<Double> = ArrayList()
     private var timeList: ArrayList<Double> = ArrayList()
+    private var speedList: ArrayList<Double> = ArrayList()
 
     private var currentDot = XYChart.Series<Number, Number>()
 
-    private val firstVoltageLatr = 1800.0.toFloat()
+    private val firstVoltageLatr = 1.8.toFloat()
 
     private var currentTestItem: TestItem = mainModel.currentTestItem
     private var timePassed = 0.0
     private var time = 0.0
     private var timeSum = 0.0
+    private var seriesTimesAndVoltage = XYChart.Series<Number, Number>()
+    private var realTime = 0.0
 
+    private var r: Random = Random()
+
+    private var duty: Float = 0.0f
+    private var pulse: Float = 0.0f
 
     private val isThereAreAccidents: Boolean
         get() {
@@ -170,7 +176,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         }
 
     private val isDevicesResponding: Boolean
-                get() = true
+        get() = true
 //        get() = isOwenPRResponding && isAvemResponding && isDeltaResponding && isLatrResponding
 //                && isParmaResponding && isKiloAvemResponding
 
@@ -184,6 +190,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             root.stylesheets[0] = Main::class.java.getResource("styles/main_css_black.css").toURI().toString()
         }
 
+        lineChartExperiment1.animated = false
         experiment1Model = mainModel.experiment1Model
         experiment1Data.add(experiment1Model)
         tableViewExperiment1.items = experiment1Data
@@ -191,23 +198,23 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         communicationModel.addObserver(this)
         voltageList = currentProtocol.voltageResonance
         timeList = currentProtocol.timesResonance
+        speedList = currentProtocol.speedResonance
         tableColumnU.setCellValueFactory { cellData -> cellData.value.voltageProperty() }
-        tableColumnIA.setCellValueFactory { cellData -> cellData.value.currentAProperty() }
+        tableColumnUOI.setCellValueFactory { cellData -> cellData.value.currentAProperty() }
         tableColumnIB.setCellValueFactory { cellData -> cellData.value.currentBProperty() }
         tableColumnIC.setCellValueFactory { cellData -> cellData.value.currentCProperty() }
-        tableColumnILeak.setCellValueFactory { cellData -> cellData.value.currentLeakProperty() }
-        tableColumnFrequency.setCellValueFactory { cellData -> cellData.value.frequencyProperty() }
+//        tableColumnILeak.setCellValueFactory { cellData -> cellData.value.currentLeakProperty() }
+//        tableColumnFrequency.setCellValueFactory { cellData -> cellData.value.frequencyProperty() }
         tableColumnResultExperiment1.setCellValueFactory { cellData -> cellData.value.resultProperty() }
-
-        createLoadDiagram()
         fillStackPairs()
     }
 
     private fun fillStackPairs() {
         for (i in 0 until currentTestItem.timesResonance.size) {
             addPair()
-            lastPair.first.text = currentTestItem.timesResonance[i].toString()
-            lastPair.second.text = currentTestItem.voltageResonance[i].toString()
+            lastTriple.first.text = currentTestItem.timesResonance[i].toString()
+            lastTriple.second.text = currentTestItem.voltageResonance[i].toString()
+            lastTriple.third.text = currentTestItem.speedResonance[i].toString()
         }
     }
 
@@ -217,32 +224,33 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     }
 
     private fun addPair() {
-        lastPair = newTextFieldsForChart()
-        stackPairs.push(lastPair)
-        vBoxTime.children.add(lastPair.first)
-        vBoxVoltage.children.add(lastPair.second)
+        lastTriple = newTextFieldsForChart()
+        stackTriples.push(lastTriple)
+        vBoxTime.children.add(lastTriple.first)
+        vBoxVoltage.children.add(lastTriple.second)
+        vBoxSpeed.children.add(lastTriple.third)
         anchorPaneTimeTorque.prefHeight += MainViewController.HEIGHT_VBOX
     }
 
     @FXML
     fun handleRemovePair() {
-        if (stackPairs.isNotEmpty()) {
+        if (stackTriples.isNotEmpty()) {
             removePair()
             saveTestItemPoints()
-            createLoadDiagram()
         } else {
             Toast.makeText("Нет полей для удаления").show(Toast.ToastType.ERROR)
         }
     }
 
     private fun removePair() {
-        lastPair = stackPairs.pop()
-        vBoxTime.children.remove(lastPair.first)
-        vBoxVoltage.children.remove(lastPair.second)
+        lastTriple = stackTriples.pop()
+        vBoxTime.children.remove(lastTriple.first)
+        vBoxVoltage.children.remove(lastTriple.second)
+        vBoxSpeed.children.remove(lastTriple.third)
         anchorPaneTimeTorque.prefHeight -= MainViewController.HEIGHT_VBOX
     }
 
-    private fun newTextFieldsForChart(): Pair<TextField, TextField> {
+    private fun newTextFieldsForChart(): Triple<TextField, TextField, TextField> {
         val time = TextField()
         time.isEditable = true
         time.prefWidth = 72.0
@@ -250,7 +258,6 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         time.setOnAction {
             if (time.text.toDouble() * 1000 > timePassed) {
                 saveTestItemPoints()
-                createLoadDiagram()
             } else {
                 Toast.makeText("Введенное значение меньше пройденного значения времени").show(Toast.ToastType.ERROR)
             }
@@ -262,54 +269,56 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         voltage.maxWidth = 72.0
         voltage.setOnAction {
             saveTestItemPoints()
-            createLoadDiagram()
         }
-        return time to voltage
+
+        val speed = TextField()
+        speed.isEditable = true
+        speed.prefWidth = 72.0
+        speed.maxWidth = 72.0
+        speed.setOnAction {
+            saveTestItemPoints()
+        }
+        return Triple(time, voltage, speed)
     }
 
     private fun saveTestItemPoints() {
         val times: ArrayList<Double> = ArrayList()
         val voltages: ArrayList<Double> = ArrayList()
+        val speeds: ArrayList<Double> = ArrayList()
 
-        stackPairs.forEach {
-            if (!it.first.text.isNullOrEmpty() &&
-                    !it.second.text.isNullOrEmpty() &&
-                    it.first.text.toDoubleOrNull() != null &&
-                    it.second.text.toDoubleOrNull() != null) {
+        stackTriples.forEach {
+            if (!it.first.text.isNullOrEmpty() && !it.second.text.isNullOrEmpty() && !it.third.text.isNullOrEmpty() &&
+                    it.first.text.toDoubleOrNull() != null && it.second.text.toDoubleOrNull() != null && it.third.text.toDoubleOrNull() != null) {
                 times.add(it.first.text.toDouble())
                 voltages.add(it.second.text.toDouble())
+                speeds.add(it.third.text.toDouble())
             } else {
                 Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
             }
         }
         currentTestItem.timesResonance = times
         currentTestItem.voltageResonance = voltages
+        currentTestItem.speedResonance = speeds
 
         voltageList = currentProtocol.voltageResonance
         timeList = currentProtocol.timesResonance
+        speedList = currentProtocol.speedResonance
 
         TestItemRepository.updateTestItem(currentTestItem)
     }
 
     private fun createLoadDiagram() {
-        lineChartExperiment1.data.clear()
-        val seriesTimesAndVoltages = XYChart.Series<Number, Number>()
+        while (isExperimentRunning) {
+            sleep(100)
 
-        var desperateDot = 0.0
-
-        seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[0]))
-
-        for (i in 0 until currentTestItem.timesResonance.size) {
-            seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i]))
-            if (i != currentTestItem.timesResonance.size - 1) {
-                seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i + 1]))
+            Platform.runLater {
+                realTime += 0.1
+                measuringU += 9
+                lineChartExperiment1.data.clear()
+                seriesTimesAndVoltage.data.add(XYChart.Data(realTime, measuringU))
+                lineChartExperiment1.data.add(seriesTimesAndVoltage)
             }
-            desperateDot += currentTestItem.timesResonance[i]
         }
-
-        seriesTimesAndVoltages.data.add(XYChart.Data(desperateDot, 0))
-
-        lineChartExperiment1.data.addAll(seriesTimesAndVoltages)
     }
 
     private fun fillProtocolExperimentFields() {
@@ -357,40 +366,69 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         experiment1Model!!.clearProperties()
         isSchemeReady = false
         cause = ""
+        lineChartExperiment1.data.clear()
 
         Thread {
-            //            if (isExperimentRunning) {
-//                appendOneMessageToLog("Визуально осматривайте трансфоматор на наличие потеков масла перед каждым опытом")
-//                communicationModel.initOwenPrController()
-//                appendOneMessageToLog("Начало испытания")
-//                communicationModel.initExperimentDevices()
-//                sleep(4000)
+
+            if (isExperimentRunning) {
+                appendOneMessageToLog("Визуально осматривайте трансфоматор на наличие потеков масла перед каждым опытом")
+                communicationModel.initOwenPrController()
+                appendOneMessageToLog("Начало испытания")
+                communicationModel.initExperimentDevices()
+//                sleep(5000)
+                communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
+                sleep(5000)
+                communicationModel.startUpLATRFast(1.0f, true)
+            }
+
+//            var startTime = 0L
+//            duty = 40.0f
+//            while (true) {
+//                duty++
+//                communicationModel.startUpLATRTest(400.0f, true, duty)
+//                appendOneMessageToLog("duty = $duty")
+//                startTime = System.currentTimeMillis()
+//                while (measuringULatr <= 370) {
+//                    sleep(10)
+//                }
+//                appendOneMessageToLog((System.currentTimeMillis() - startTime).toString())
+//                appendOneMessageToLog((370 / ((System.currentTimeMillis() - startTime) / 1000)).toString())
+//                sleep(6000)
 //            }
-//
-//            while (isExperimentRunning && !isStartButtonOn) {
-//                appendOneMessageToLog("Включите кнопочный пост")
-//                sleep(10)
+
+//            while (latrStatus != LATR_DOWN_END) {
+//                communicationModel.startUpLATRFast(0.0f, true)
 //            }
-//
+
+//            while (isPRDI6) {
+//                appendOneMessageToLog("Включите рубильник")
+//            }
+
 //            if (isExperimentRunning) {
-//                communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
-//                appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
-//                communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
-//                appendOneMessageToLog("Запускаем ЧП")
-//                communicationModel.onPRO4()
+//                communicationModel.onPRO1()
+//            }
+
+//            while (isPRMDI1) {
+//                appendOneMessageToLog("Нажмите кнопку ПУСК")
+//            }
+
+            if (isExperimentRunning) {
+                appendOneMessageToLog("Устанавливаем начальные точки для ЧП")
+                communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
+                appendOneMessageToLog("Запускаем ЧП")
 //                resetOmik()
-//            }
-//
+//                communicationModel.onPRO6() //последовательное
+//                communicationModel.onPRO7() //параллельно
+            }
+
+
 //            if (isExperimentRunning) {
-//                communicationModel.onPRO3()
-//                sleep(1000)
 //                appendOneMessageToLog("Поднимаем напряжение на объекте испытания для поиска резонанса")
 //                communicationModel.startUpLATRFast(firstVoltageLatr, true)
 //                waitingLatrCoarse(firstVoltageLatr)
 //                if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
 //                    setCause("Коэфицент трансформации сильно отличается")
 //                }
-//
 //            }
 //
 //            if (isExperimentRunning) {
@@ -400,35 +438,42 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             timeSum = 0.0
 
             if (isExperimentRunning && isDevicesResponding) {
+                createLoadDiagram()
                 for (i in voltageList.indices) {
-                    stackPairs[i].second.isDisable = true
+                    stackTriples[i].second.isDisable = true
                     timePassed = 0.0
                     if (isExperimentRunning && isDevicesResponding) {
                         appendOneMessageToLog("Началась регулировка")
+                        selectDutyAndPulseForLatr(i)
 //                        communicationModel.startUpLATRFast((voltageList[i] / coef).toFloat(), false)
 //                        waitingLatrCoarse(voltageList[i].toFloat())
 //                        fineLatr(voltageList[i].toFloat())
 //                        if (measuringULatr < measuringU * 0.5 && measuringULatr * 0.5 > measuringU) {
 //                            setCause("Коэфицент трансформации сильно отличается")
 //                        }
-                        sleep(3000)
                         appendOneMessageToLog("Регулировка окончена")
+//                        communicationModel.onPRlMDO6()
+//                        sleep(3000)
+//                        communicationModel.offPRMDO6()
+//                        communicationModel.onPRMDO5()
+//                        communicationModel.offPRMDO5()
                     }
 
                     time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
                     while (isExperimentRunning && timePassed < time) {
-                        sleep(10)
-                        timePassed += 10.75 //потому что while занимает реально примерно 10.75 ms11
-                        if (time != stackPairs[i].second.text.toDouble() * MILLS_IN_SEC) {
+                        sleep(100)
+                        timePassed += 100.75 //потому что while занимает реально примерно 0.75 ms
+                        if (time != stackTriples[i].second.text.toDouble() * MILLS_IN_SEC) {
                             time = currentTestItem.timesResonance[i] * MILLS_IN_SEC
                         }
-                        drawDot(timeSum, timeSum + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i], timePassed / time)
                     }
+//                    communicationModel.onPRMDO6()
+//                    sleep(1500)
+//                    communicationModel.offPRMDO6()
                     voltageList = currentTestItem.voltageResonance
                     timeSum += currentTestItem.timesResonance[i]
-                    stackPairs[i].first.isDisable = true
+                    stackTriples[i].first.isDisable = true
                 }
-                drawDot(0.0, timeSum, 0.0, timePassed / time)
             }
 
             isNeedToRefresh = false
@@ -437,12 +482,12 @@ class Experiment1Controller : DeviceState(), ExperimentController {
 //                sleep(10)
 //            }
 //            communicationModel.stopLATR()
-//            resetOmik()
+////            resetOmik()
 //            communicationModel.stopObject()
 //            sleep(3000)
 //            communicationModel.offAllKms()
 //            sleep(50)
-//            communicationModel.finalizeAllDevices()
+            communicationModel.finalizeAllDevices()
 
             if (cause != "") {
                 appendMessageToLog(String.format("Испытание прервано по причине: %s", cause))
@@ -469,18 +514,59 @@ class Experiment1Controller : DeviceState(), ExperimentController {
         }.start()
     }
 
-    private fun drawDot(x1: Double, x2: Double, y: Double, percent: Double) {
-        Platform.runLater {
-            lineChartExperiment1.data.removeAll(currentDot)
-            currentDot = createCurrentDot(x1, x2, y, percent)
-            lineChartExperiment1.data.addAll(currentDot)
+    private fun selectDutyAndPulseForLatr(i: Int) {
+        if (currentTestItem.speedResonance[i] < 0.4) {
+            duty = 25.0f
+            pulse = 50.0f
+        } else if (currentTestItem.speedResonance[i] >= 0.4 && currentTestItem.speedResonance[i] < 0.5) {
+            duty = 25.0f
+            pulse = 56.0f
+        } else if (currentTestItem.speedResonance[i] >= 0.5 && currentTestItem.speedResonance[i] < 0.6) {
+            duty = 25.0f
+            pulse = 64.0f
+        } else if (currentTestItem.speedResonance[i] >= 0.6 && currentTestItem.speedResonance[i] < 0.7) {
+            duty = 25.0f
+            pulse = 70.0f
+        } else if (currentTestItem.speedResonance[i] >= 0.7 && currentTestItem.speedResonance[i] < 0.8) {
+            duty = 25.0f
+            pulse = 74.0f
+        } else if (currentTestItem.speedResonance[i] >= 0.8 && currentTestItem.speedResonance[i] < 0.9) {
+            duty = 25.0f
+            pulse = 79.0f
+        } else if (currentTestItem.speedResonance[i] >= 0.9 && currentTestItem.speedResonance[i] < 1.0) {
+            duty = 25.0f
+            pulse = 85.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.0 && currentTestItem.speedResonance[i] < 1.1) {
+            duty = 25.0f
+            pulse = 89.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.1 && currentTestItem.speedResonance[i] < 1.2) {
+            duty = 25.0f
+            pulse = 94.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.2 && currentTestItem.speedResonance[i] < 1.3) {
+            duty = 28.0f
+            pulse = 86.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.3 && currentTestItem.speedResonance[i] < 1.4) {
+            duty = 28.0f
+            pulse = 88.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.4 && currentTestItem.speedResonance[i] < 1.5) {
+            duty = 28.0f
+            pulse = 90.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.5 && currentTestItem.speedResonance[i] < 1.6) {
+            duty = 28.0f
+            pulse = 92.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.6 && currentTestItem.speedResonance[i] < 1.7) {
+            duty = 28.0f
+            pulse = 95.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.7 && currentTestItem.speedResonance[i] < 1.8) {
+            duty = 32.0f
+            pulse = 90.0f
+        } else if (currentTestItem.speedResonance[i] >= 1.8 && currentTestItem.speedResonance[i] < 1.9) {
+            duty = 33.0f
+            pulse = 91.0f
+        } else if (currentTestItem.speedResonance[i] <= 2.0) {
+            duty = 34.0f
+            pulse = 91.0f
         }
-    }
-
-    private fun createCurrentDot(x1: Double, x2: Double, y: Double, percent: Double): XYChart.Series<Number, Number> {
-        val currentDot = XYChart.Series<Number, Number>()
-        currentDot.data.add(XYChart.Data(x1 + (x2 - x1) * percent, y))
-        return currentDot
     }
 
     private fun findResonance() {
@@ -585,6 +671,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     setCause("Омик в верхнем положенении, двигаясь вниз")
                 }
             }
+            sleep(1000)
             communicationModel.stopObject()
         }
         if (statusEndsVFD == OMIK_DOWN_END) {
@@ -648,37 +735,37 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 }
             }
 
-            PARMA400_ID -> when (param) {
-                ParmaT400Model.RESPONDING_PARAM -> {
+            PM130_ID -> when (param) {
+                PM130Model.RESPONDING_PARAM -> {
                     isParmaResponding = value as Boolean
-                    Platform.runLater { deviceStateCircleParma.fill = if (value) Color.LIME else Color.RED }
+                    Platform.runLater { deviceStateCirclePM130.fill = if (value) Color.LIME else Color.RED }
                 }
-                ParmaT400Model.IA_PARAM -> {
-                    measuringIA = value as Double * 16
+                PM130Model.I1_PARAM -> {
+                    measuringIA = value as Float * 16
                     val IA = String.format("%.4f", measuringIA)
                     experiment1Model!!.currentA = IA
                     if (measuringIA > 45) {
                         appendMessageToLog("Ток А превышает 45А")
                     }
                 }
-                ParmaT400Model.IB_PARAM -> {
-                    measuringIB = value as Double * 2
+                PM130Model.I2_PARAM -> {
+                    measuringIB = value as Float * 2
                     val IB = String.format("%.4f", measuringIB)
                     experiment1Model!!.currentB = IB
                     if (measuringIB > 45) {
                         appendMessageToLog("Ток B превышает 45А")
                     }
                 }
-                ParmaT400Model.IC_PARAM -> {
-                    measuringIC = value as Double * 16
+                PM130Model.I3_PARAM -> {
+                    measuringIC = value as Float * 16 //TODO ТОП УЗНАТЬ
                     val IC = String.format("%.4f", measuringIC)
                     experiment1Model!!.currentC = IC
                     if (measuringIC > 45) {
                         appendMessageToLog("Ток C превышает 45А")
                     }
                 }
-                ParmaT400Model.F_PARAM -> {
-                    measuringF = value as Double
+                PM130Model.F_PARAM -> {
+                    measuringF = value as Float
                     val FParma = String.format("%.2f", measuringF)
                     experiment1Model!!.frequency = FParma
                 }
@@ -716,17 +803,17 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 }
             }
 
-            KILOAVEM_ID -> when (param) {
-                AvemVoltmeterModel.RESPONDING_PARAM -> {
-                    isKiloAvemResponding = value as Boolean
-                    Platform.runLater { deviceStateCircleKiloAvem.fill = if (value) Color.LIME else Color.RED }
-                }
-                AvemVoltmeterModel.U_RMS_PARAM -> {
-                    measuringU = (value as Float) * 1000
-                    val kiloAvemU = String.format("%.2f", measuringU)
-                    experiment1Model!!.voltage = kiloAvemU
-                }
-            }
+//            KILOAVEM_ID -> when (param) {
+//                AvemVoltmeterModel.RESPONDING_PARAM -> {
+//                    isKiloAvemResponding = value as Boolean
+//                    Platform.runLater { deviceStateCircleKiloAvem.fill = if (value) Color.LIME else Color.RED }
+//                }
+//                AvemVoltmeterModel.U_RMS_PARAM -> {
+//                    measuringU = (value as Float)
+//                    val kiloAvemU = String.format("%.2f", measuringU)
+//                    experiment1Model!!.voltage = kiloAvemU
+//                }
+//            }
 
             LATR_ID -> when (param) {
                 LatrModel.RESPONDING_PARAM -> {
@@ -739,7 +826,8 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                     checkLatrStatus()
                 }
                 LatrModel.U_PARAM -> {
-                    measuringULatr = (value as Float) * 102
+                    measuringULatr = (value as Float)
+                    experiment1Model!!.voltage = measuringULatr.toString()
                 }
             }
         }
@@ -748,16 +836,16 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     private fun checkLatrStatus() {
         when (latrStatus) {
             LATR_STARTED -> {
-                Log.i("", "Выход ЛАТРа на заданное напряжение")
+//                appendOneMessageToLog("Выход ЛАТРа на заданное напряжение")
             }
             LATR_WAITING -> {
-                Log.i("", "Выдерживаем заданное напряжение на ЛАТРе")
+                appendOneMessageToLog("Выдерживаем заданное напряжение на ЛАТРе")
             }
             LATR_CONFIG -> {
-                Log.i("", "Режим кофигурации ЛАТР")
+                appendOneMessageToLog("Режим кофигурации ЛАТР")
             }
             LATR_STOP_RESET -> {
-                Log.i("", "Стоп/Ресет ЛАТР")
+//                appendOneMessageToLog("Стоп/Ресет ЛАТР")
             }
         }
     }
@@ -765,10 +853,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     private fun checkLatrError() {
         when (latrStatus) {
             LATR_UP_END -> {
-                Log.i("", "Сработал верхний концевик ЛАТРа.")
+                appendOneMessageToLog("Сработал верхний концевик ЛАТРа.")
             }
             LATR_DOWN_END -> {
-                Log.i("", "Сработал нижний концевик ЛАТРа.")
+                appendOneMessageToLog("Сработал нижний концевик ЛАТРа.")
             }
             LATR_BOTH_END -> {
                 setCause("Сработали оба концевика ЛАТРа.")
@@ -785,16 +873,16 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     private fun checkEndsVFDStatus() {
         when (statusEndsVFD) {
             OMIK_UP_END -> {
-                Log.i("", "Замкнут верхний концевик ОМИКа.")
+                appendOneMessageToLog("Замкнут верхний концевик ОМИКа.")
             }
             OMIK_DOWN_END -> {
-                Log.i("", "Замкнут нижний концевик ОМИКа.")
+                appendOneMessageToLog("Замкнут нижний концевик ОМИКа.")
             }
             OMIK_BOTH_END -> {
                 setCause("Замкнуты оба концевика ОМИКа.")
             }
             OMIK_NOONE_END -> {
-                Log.i("", "Оба концевика ОМИКа не замкнуты")
+                Log.d("", "Оба концевика ОМИКа не замкнуты")
             }
         }
     }
@@ -802,10 +890,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
     private fun checkVFDStatus() {
         when (statusVFD) {
             VFD_FORWARD -> {
-                Log.i("", "FORWARD")
+                Log.d("", "FORWARD")
             }
             VFD_REVERSE -> {
-                Log.i("", "REVERSE")
+                Log.d("", "REVERSE")
             }
         }
     }

@@ -38,6 +38,7 @@ import java.util.*
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
 import kotlin.collections.ArrayList
+import kotlin.math.abs
 
 class MainViewController : Statable {
     //region FXML
@@ -65,8 +66,6 @@ class MainViewController : Statable {
     @FXML
     lateinit var radioResonance: RadioButton
     @FXML
-    lateinit var radioViu: RadioButton
-    @FXML
     lateinit var radioViuDC: RadioButton
 
     @FXML
@@ -75,6 +74,8 @@ class MainViewController : Statable {
     lateinit var vBoxTime: VBox
     @FXML
     lateinit var vBoxVoltage: VBox
+    @FXML
+    lateinit var vBoxSpeed: VBox
     @FXML
     lateinit var anchorPaneTimeTorque: AnchorPane
     @FXML
@@ -103,8 +104,8 @@ class MainViewController : Statable {
     private var protocolFileChooser: FileChooser? = null
     private var DBFileChooser: FileChooser? = null
 
-    private lateinit var lastPair: Pair<TextField, TextField>
-    private val stackPairs: Stack<Pair<TextField, TextField>> = Stack()
+    private lateinit var lastTriple: Triple<TextField, TextField, TextField>
+    private val stackTriples: Stack<Triple<TextField, TextField, TextField>> = Stack()
 
 
     private var allTestItems = TestItemRepository.getAllTestItems()
@@ -208,14 +209,14 @@ class MainViewController : Statable {
     private fun saveTestItemPoints() {
         val times: ArrayList<Double> = ArrayList()
         val voltages: ArrayList<Double> = ArrayList()
+        val speeds: ArrayList<Double> = ArrayList()
 
-        stackPairs.forEach {
-            if (!it.first.text.isNullOrEmpty() &&
-                    !it.second.text.isNullOrEmpty() &&
-                    it.first.text.toDoubleOrNull() != null &&
-                    it.second.text.toDoubleOrNull() != null) {
+        stackTriples.forEach {
+            if (!it.first.text.isNullOrEmpty() && !it.second.text.isNullOrEmpty() && !it.third.text.isNullOrEmpty() &&
+                    it.first.text.toDoubleOrNull() != null && it.second.text.toDoubleOrNull() != null && it.third.text.toDoubleOrNull() != null) {
                 times.add(it.first.text.toDouble())
                 voltages.add(it.second.text.toDouble())
+                speeds.add(it.third.text.toDouble())
             } else {
                 Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
             }
@@ -224,51 +225,51 @@ class MainViewController : Statable {
             radioResonance.isSelected -> {
                 currentTestItem.timesResonance = times
                 currentTestItem.voltageResonance = voltages
-            }
-            radioViu.isSelected -> {
-                currentTestItem.timesViu = times
-                currentTestItem.voltageViu = voltages
+                currentTestItem.speedResonance = speeds
             }
             radioViuDC.isSelected -> {
                 currentTestItem.timesViuDC = times
                 currentTestItem.voltageViuDC = voltages
+                currentTestItem.speedViuDC = speeds
             }
         }
         TestItemRepository.updateTestItem(currentTestItem)
     }
 
     @FXML
-    fun handleAddPair() {
-        addPair()
+    fun handleAddTriple() {
+        addTriple()
     }
 
-    private fun addPair() {
-        lastPair = newTextFieldsForChart()
-        stackPairs.push(lastPair)
-        vBoxTime.children.add(lastPair.first)
-        vBoxVoltage.children.add(lastPair.second)
+    private fun addTriple() {
+        lastTriple = newTextFieldsForChart()
+        stackTriples.push(lastTriple)
+        vBoxTime.children.add(lastTriple.first)
+        vBoxVoltage.children.add(lastTriple.second)
+        vBoxSpeed.children.add(lastTriple.third)
         anchorPaneTimeTorque.prefHeight += HEIGHT_VBOX
     }
 
     @FXML
-    fun handleRemovePair() {
-        if (stackPairs.isNotEmpty()) {
-            removePair()
+    fun handleRemoveTriple() {
+        if (stackTriples.isNotEmpty()) {
+            removeTriple()
             saveTestItemPoints()
             createLoadDiagram()
-        } else{
+        } else {
             Toast.makeText("Нет полей для удаления").show(Toast.ToastType.ERROR)
         }
     }
 
-    private fun removePair() {
-        lastPair = stackPairs.pop()
-        vBoxTime.children.remove(lastPair.first)
-        vBoxVoltage.children.remove(lastPair.second)
+    private fun removeTriple() {
+        lastTriple = stackTriples.pop()
+        vBoxTime.children.remove(lastTriple.first)
+        vBoxVoltage.children.remove(lastTriple.second)
+        vBoxSpeed.children.remove(lastTriple.third)
         anchorPaneTimeTorque.prefHeight -= HEIGHT_VBOX
     }
 
-    private fun newTextFieldsForChart(): Pair<TextField, TextField> {
+    private fun newTextFieldsForChart(): Triple<TextField, TextField, TextField> {
         val time = TextField()
         time.isEditable = true
         time.prefWidth = 72.0
@@ -286,7 +287,16 @@ class MainViewController : Statable {
             saveTestItemPoints()
             createLoadDiagram()
         }
-        return time to voltage
+
+        val speed = TextField()
+        speed.isEditable = true
+        speed.prefWidth = 72.0
+        speed.maxWidth = 72.0
+        speed.setOnAction {
+            saveTestItemPoints()
+            createLoadDiagram()
+        }
+        return Triple(time, voltage, speed)
     }
 
     @FXML
@@ -302,23 +312,18 @@ class MainViewController : Statable {
         when {
             radioResonance.isSelected -> {
                 for (i in 0 until currentTestItem.timesResonance.size) {
-                    handleAddPair()
-                    lastPair.first.text = currentTestItem.timesResonance[i].toString()
-                    lastPair.second.text = currentTestItem.voltageResonance[i].toString()
-                }
-            }
-            radioViu.isSelected -> {
-                for (i in 0 until currentTestItem.timesViu.size) {
-                    handleAddPair()
-                    lastPair.first.text = currentTestItem.timesViu[i].toString()
-                    lastPair.second.text = currentTestItem.voltageViu[i].toString()
+                    handleAddTriple()
+                    lastTriple.first.text = currentTestItem.timesResonance[i].toString()
+                    lastTriple.second.text = currentTestItem.voltageResonance[i].toString()
+                    lastTriple.third.text = currentTestItem.speedResonance[i].toString()
                 }
             }
             radioViuDC.isSelected -> {
                 for (i in 0 until currentTestItem.timesViuDC.size) {
-                    handleAddPair()
-                    lastPair.first.text = currentTestItem.timesViuDC[i].toString()
-                    lastPair.second.text = currentTestItem.voltageViuDC[i].toString()
+                    handleAddTriple()
+                    lastTriple.first.text = currentTestItem.timesViuDC[i].toString()
+                    lastTriple.second.text = currentTestItem.voltageViuDC[i].toString()
+                    lastTriple.third.text = currentTestItem.speedViuDC[i].toString()
                 }
             }
         }
@@ -332,56 +337,43 @@ class MainViewController : Statable {
         when {
             radioResonance.isSelected -> {
                 if (currentTestItem.voltageResonance.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
+                    desperateDot += abs(currentTestItem.voltageResonance[0] - 0) / currentTestItem.speedResonance[0]
                     seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[0]))
-                    for (i in 0 until currentTestItem.timesResonance.size) {
-                        seriesTimesAndVoltage.data.add(XYChart.Data(
-                                desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i]))
-                        if (i != currentTestItem.timesResonance.size - 1) {
-                            seriesTimesAndVoltage.data.add(XYChart.Data(
-                                    desperateDot + currentTestItem.timesResonance[i], currentTestItem.voltageResonance[i + 1]))
-                        }
+                    desperateDot += currentTestItem.timesResonance[0]
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[0]))
+                    for (i in 1 until currentTestItem.timesResonance.size) {
+                        desperateDot += abs((currentTestItem.voltageResonance[i] - currentTestItem.voltageResonance[i - 1]) / currentTestItem.speedResonance[i])
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[i]))
                         desperateDot += currentTestItem.timesResonance[i]
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[i]))
                     }
-                }
-            }
-            radioViu.isSelected -> {
-                if (currentTestItem.voltageViu.isNotEmpty()) {
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[0]))
-                    for (i in 0 until currentTestItem.timesViu.size) {
-                        seriesTimesAndVoltage.data.add(XYChart.Data(
-                                desperateDot + currentTestItem.timesViu[i],
-                                currentTestItem.voltageViu[i]))
-                        if (i != currentTestItem.timesViu.size - 1) {
-                            seriesTimesAndVoltage.data.add(XYChart.Data(
-                                    desperateDot + currentTestItem.timesViu[i],
-                                    currentTestItem.voltageViu[i + 1]))
-                        }
-                        desperateDot += currentTestItem.timesViu[i]
-                    }
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageResonance.last() / 2, 0))
                 }
             }
             radioViuDC.isSelected -> {
                 if (currentTestItem.voltageViuDC.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
+                    desperateDot += abs(currentTestItem.voltageViuDC[0] - 0) / currentTestItem.speedViuDC[0]
                     seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[0]))
-                    for (i in 0 until currentTestItem.timesViuDC.size) {
-                        seriesTimesAndVoltage.data.add(XYChart.Data(
-                                desperateDot + currentTestItem.timesViuDC[i], currentTestItem.voltageViuDC[i]))
-                        if (i != currentTestItem.timesViuDC.size - 1) {
-                            seriesTimesAndVoltage.data.add(XYChart.Data(
-                                    desperateDot + currentTestItem.timesViuDC[i], currentTestItem.voltageViuDC[i + 1]))
-                        }
+                    desperateDot += currentTestItem.timesViuDC[0]
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[0]))
+                    for (i in 1 until currentTestItem.timesViuDC.size) {
+                        desperateDot += abs((currentTestItem.voltageViuDC[i] - currentTestItem.voltageViuDC[i - 1]) / currentTestItem.speedViuDC[i])
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[i]))
                         desperateDot += currentTestItem.timesViuDC[i]
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[i]))
                     }
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageViuDC.last() / 2, 0))
                 }
             }
         }
-        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, 0))
         loadDiagram.data.addAll(seriesTimesAndVoltage)
     }
 
     private fun removeData() {
-        for (i in 0 until stackPairs.size) {
-            removePair()
+        for (i in 0 until stackTriples.size) {
+            removeTriple()
         }
     }
 
@@ -614,9 +606,6 @@ class MainViewController : Statable {
     private fun startExperiment() {
         if (radioResonance.isSelected) {
             startExperiment("layouts/experiment1View.fxml")
-        }
-        if (radioViu.isSelected) {
-            startExperiment("layouts/experiment2View.fxml")
         }
         if (radioViuDC.isSelected) {
             startExperiment("layouts/experiment3View.fxml")

@@ -32,8 +32,8 @@
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="16.0">
                            <children>
-                                <Circle fx:id="deviceStateCircleParma" fill="DODGERBLUE" radius="14.0" stroke="BLACK" strokeType="INSIDE" />
-                                <Label text="Парма" />
+                                <Circle fx:id="deviceStateCirclePM130" fill="DODGERBLUE" radius="14.0" stroke="BLACK" strokeType="INSIDE" />
+                                <Label text="PM130" />
                            </children>
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="16.0">

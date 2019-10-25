@@ -24,15 +24,23 @@ public abstract class DataBaseRepository {
             timesResonance.add(0, 1.0);
             ArrayList<Double> voltageResonance = new ArrayList<>();
             voltageResonance.add(0, 2.0);
+            ArrayList<Double> speedResonance = new ArrayList<>();
+            speedResonance.add(0, 2.0);
             ArrayList<Double> timesViu = new ArrayList<>();
             timesViu.add(0, 3.0);
             ArrayList<Double> voltageViu = new ArrayList<>();
             voltageViu.add(0, 4.0);
+            ArrayList<Double> speedViu = new ArrayList<>();
+            speedViu.add(0, 4.0);
             ArrayList<Double> timesViuDC = new ArrayList<>();
             timesViuDC.add(0, 5.0);
             ArrayList<Double> voltageViuDC = new ArrayList<>();
             voltageViuDC.add(0, 6.0);
-            TestItem testItem = new TestItem("Двигатель", timesResonance, voltageResonance, timesViu, voltageViu, timesViuDC, voltageViuDC);
+            ArrayList<Double> speedViuDC = new ArrayList<>();
+            speedViuDC.add(0, 6.0);
+            TestItem testItem = new TestItem("Двигатель", timesResonance, voltageResonance, speedResonance,
+                    timesViu, voltageViu, speedViu,
+                    timesViuDC, voltageViuDC, speedViuDC);
             TestItemRepository.insertTestItem(testItem);
 
             ProtocolRepository.createTable();

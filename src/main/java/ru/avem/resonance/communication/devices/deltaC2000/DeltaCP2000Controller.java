@@ -7,9 +7,9 @@ import java.nio.ByteBuffer;
 import java.util.Observer;
 
 public class DeltaCP2000Controller implements DeviceController {
-    private static final short ERRORS_REGISTER = 0x2100;
+    public static final short ERRORS_REGISTER = 0x2100;
     public static final short STATUS_REGISTER = 0x2101;
-    private static final short ENDS_STATUS_REGISTER = 0x041A;
+    public static final short ENDS_STATUS_REGISTER = 0x041A;
     public static final short END_UP_CONTROL_REGISTER = 0x0405;
     public static final short END_DOWN_CONTROL_REGISTER = 0x0406;
     public static final short CURRENT_FREQUENCY_INPUT_REGISTER = 0x2103;

@@ -23,7 +23,6 @@ import ru.avem.resonance.communication.devices.DeviceController.*
 import ru.avem.resonance.communication.devices.avem_voltmeter.AvemVoltmeterModel
 import ru.avem.resonance.communication.devices.deltaC2000.DeltaCP2000Model
 import ru.avem.resonance.communication.devices.latr.LatrModel
-import ru.avem.resonance.communication.devices.parmaT400.ParmaT400Model
 import ru.avem.resonance.communication.devices.pr200.OwenPRModel
 import ru.avem.resonance.communication.modbus.utils.Utils
 import ru.avem.resonance.model.Experiment2Model
@@ -498,42 +497,6 @@ class Experiment2Controller : DeviceState(), ExperimentController {
                 }
                 OwenPRModel.PRI1 -> {
                     isStartButtonOn = value as Boolean
-                }
-            }
-
-            PARMA400_ID -> when (param) {
-                ParmaT400Model.RESPONDING_PARAM -> {
-                    isParmaResponding = value as Boolean
-                    Platform.runLater { deviceStateCircleParma.fill = if (value) Color.LIME else Color.RED }
-                }
-                ParmaT400Model.IA_PARAM -> {
-                    measuringIA = value as Double * 16
-                    val IA = String.format("%.4f", measuringIA)
-                    experiment2Model!!.currentA = IA
-                    if (measuringIA > 45) {
-                        appendMessageToLog("Ток А превышает 45А")
-                    }
-                }
-                ParmaT400Model.IB_PARAM -> {
-                    measuringIB = value as Double * 2
-                    val IB = String.format("%.4f", measuringIB)
-                    experiment2Model!!.currentB = IB
-                    if (measuringIB > 45) {
-                        appendMessageToLog("Ток B превышает 45А")
-                    }
-                }
-                ParmaT400Model.IC_PARAM -> {
-                    measuringIC = value as Double * 16
-                    val IC = String.format("%.4f", measuringIC)
-                    experiment2Model!!.currentC = IC
-                    if (measuringIC > 45) {
-                        appendMessageToLog("Ток C превышает 45А")
-                    }
-                }
-                ParmaT400Model.F_PARAM -> {
-                    measuringF = value as Double
-                    val FParma = String.format("%.2f", measuringF)
-                    experiment2Model!!.frequency = FParma
                 }
             }
             DELTACP2000_ID -> when (param) {

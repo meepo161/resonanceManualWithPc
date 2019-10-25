@@ -23,13 +23,19 @@ public class Protocol {
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> voltageResonance = new ArrayList<>(0);
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
+    private ArrayList<Double> speedResonance = new ArrayList<>(0);
+    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> timesViu = new ArrayList<>(0);
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> voltageViu = new ArrayList<>(0);
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
+    private ArrayList<Double> speedViu = new ArrayList<>(0);
+    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> timesViuDC = new ArrayList<>(0);
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> voltageViuDC = new ArrayList<>(0);
+    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
+    private ArrayList<Double> speedViuDC = new ArrayList<>(0);
     @DatabaseField
     private String position1;
     @DatabaseField
@@ -85,17 +91,22 @@ public class Protocol {
     }
 
     public TestItem getObject() {
-        return new TestItem(type, timesResonance, voltageResonance, timesViu, voltageViu, timesViuDC, voltageViuDC);
+        return new TestItem(type, timesResonance, voltageResonance, speedResonance,
+                timesViu, voltageViu, speedViu,
+                timesViuDC, voltageViuDC, speedViuDC);
     }
 
     public void setObject(TestItem object) {
         type = object.getType();
         timesResonance = object.getTimesResonance();
         voltageResonance = object.getVoltageResonance();
+        speedResonance = object.getSpeedResonance();
         timesViu = object.getTimesViu();
         voltageViu = object.getVoltageViu();
+        speedViu = object.getSpeedViu();
         timesViuDC = object.getTimesViuDC();
         voltageViuDC = object.getVoltageViuDC();
+        speedViuDC = object.getSpeedViuDC();
     }
 
     public long getMillis() {
@@ -161,6 +172,30 @@ public class Protocol {
 
     public void setVoltageViuDC(ArrayList<Double> voltageViuDC) {
         this.voltageViuDC = voltageViuDC;
+    }
+
+    public ArrayList<Double> getSpeedResonance() {
+        return speedResonance;
+    }
+
+    public void setSpeedResonance(ArrayList<Double> speedResonance) {
+        this.speedResonance = speedResonance;
+    }
+
+    public ArrayList<Double> getSpeedViu() {
+        return speedViu;
+    }
+
+    public void setSpeedViu(ArrayList<Double> speedViu) {
+        this.speedViu = speedViu;
+    }
+
+    public ArrayList<Double> getSpeedViuDC() {
+        return speedViuDC;
+    }
+
+    public void setSpeedViuDC(ArrayList<Double> speedViuDC) {
+        this.speedViuDC = speedViuDC;
     }
 
     public String getPosition1() {
