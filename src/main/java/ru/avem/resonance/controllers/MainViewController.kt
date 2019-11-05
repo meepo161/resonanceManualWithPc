@@ -66,7 +66,11 @@ class MainViewController : Statable {
     @FXML
     lateinit var radioResonance: RadioButton
     @FXML
+    lateinit var radioViu: RadioButton
+    @FXML
     lateinit var radioViuDC: RadioButton
+    @FXML
+    lateinit var radioManualWithPC: RadioButton
 
     @FXML
     lateinit var gridPaneTimeTorque: GridPane
@@ -227,10 +231,17 @@ class MainViewController : Statable {
                 currentTestItem.voltageResonance = voltages
                 currentTestItem.speedResonance = speeds
             }
+            radioViu.isSelected -> {
+                currentTestItem.timesViu = times
+                currentTestItem.voltageViu = voltages
+                currentTestItem.speedViu = speeds
+            }
             radioViuDC.isSelected -> {
                 currentTestItem.timesViuDC = times
                 currentTestItem.voltageViuDC = voltages
                 currentTestItem.speedViuDC = speeds
+            }
+            radioViuDC.isSelected -> {
             }
         }
         TestItemRepository.updateTestItem(currentTestItem)
@@ -318,6 +329,14 @@ class MainViewController : Statable {
                     lastTriple.third.text = currentTestItem.speedResonance[i].toString()
                 }
             }
+            radioViu.isSelected -> {
+                for (i in 0 until currentTestItem.timesViu.size) {
+                    handleAddTriple()
+                    lastTriple.first.text = currentTestItem.timesViu[i].toString()
+                    lastTriple.second.text = currentTestItem.voltageViu[i].toString()
+                    lastTriple.third.text = currentTestItem.speedViu[i].toString()
+                }
+            }
             radioViuDC.isSelected -> {
                 for (i in 0 until currentTestItem.timesViuDC.size) {
                     handleAddTriple()
@@ -325,6 +344,8 @@ class MainViewController : Statable {
                     lastTriple.second.text = currentTestItem.voltageViuDC[i].toString()
                     lastTriple.third.text = currentTestItem.speedViuDC[i].toString()
                 }
+            }
+            radioManualWithPC.isSelected -> {
             }
         }
     }
@@ -351,6 +372,22 @@ class MainViewController : Statable {
                     seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageResonance.last() / 2, 0))
                 }
             }
+            radioViu.isSelected -> {
+                if (currentTestItem.voltageViu.isNotEmpty()) {
+                    seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
+                    desperateDot += abs(currentTestItem.voltageViu[0] - 0) / currentTestItem.speedViu[0]
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[0]))
+                    desperateDot += currentTestItem.timesViu[0]
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[0]))
+                    for (i in 1 until currentTestItem.timesViu.size) {
+                        desperateDot += abs((currentTestItem.voltageViu[i] - currentTestItem.voltageViu[i - 1]) / currentTestItem.speedViu[i])
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[i]))
+                        desperateDot += currentTestItem.timesViu[i]
+                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[i]))
+                    }
+                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageViu.last() / 2, 0))
+                }
+            }
             radioViuDC.isSelected -> {
                 if (currentTestItem.voltageViuDC.isNotEmpty()) {
                     seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
@@ -366,6 +403,9 @@ class MainViewController : Statable {
                     }
                     seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageViuDC.last() / 2, 0))
                 }
+            }
+            radioManualWithPC.isSelected -> {
+                seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
             }
         }
         loadDiagram.data.addAll(seriesTimesAndVoltage)
@@ -607,8 +647,14 @@ class MainViewController : Statable {
         if (radioResonance.isSelected) {
             startExperiment("layouts/experiment1View.fxml")
         }
+        if (radioViu.isSelected) {
+            startExperiment("layouts/experiment2View.fxml")
+        }
         if (radioViuDC.isSelected) {
             startExperiment("layouts/experiment3View.fxml")
+        }
+        if (radioManualWithPC.isSelected) {
+            startExperiment("layouts/experiment1ViewManual.fxml")
         }
     }
 

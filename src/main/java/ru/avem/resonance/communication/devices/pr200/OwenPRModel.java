@@ -5,23 +5,23 @@ import java.util.Observer;
 
 public class OwenPRModel extends Observable {
     public static final int RESPONDING_PARAM = 0;
-    public static final int PRI1 = 1;
-    public static final int PRI2 = 2;
-    public static final int PRI3 = 3;
-    public static final int PRI4 = 4;
-    public static final int PRI5 = 5;
+    public static final int РУЧНОЙ_РЕЖИМ = 1;
+    public static final int РУЧНОЙ_РЕЖИМ_С_ПК = 2;
+    public static final int ПЕРЕМЕННОЕ = 3;
+    public static final int ПЕРЕМЕННОЕ_С_РЕЗОНАНСОМ = 4;
+    public static final int ПОСТОЯННОЕ = 5;
     public static final int PRI6 = 6;
-    public static final int PRI7 = 7;
-    public static final int PRI8 = 8;
+    public static final int СТАРТ = 7;
+    public static final int СТОП = 8;
 
-    public static final int PRIM1 = 9;
-    public static final int PRIM2 = 10;
-    public static final int PRIM3 = 11;
-    public static final int PRIM4 = 12;
-    public static final int PRIM5 = 13;
-    public static final int PRIM6 = 14;
-    public static final int PRIM7 = 15;
-    public static final int PRIM8 = 16;
+    public static final int КОНТРОЛЬ_ПУСКА = 9;
+    public static final int ТКЗ_ДО_ТРАНСФОРМАТОРА = 10;
+    public static final int КОНТРОЛЬ_ДВЕРЕЙ_ШСО = 11;
+    public static final int ТКЗ_ОИ = 12;
+    public static final int ТКЗ_ПОСЛЕ_ТРАНСФОРМАТОРА = 13;
+    public static final int СТОП_ИСПЫТАНИЯ = 14;
+    public static final int ПОДЪЕМ_НАПРЯЖЕНИЯ = 15;
+    public static final int УМЕНЬШЕНИЕ_НАПРЯЖЕНИЯ = 16;
 
     private int deviceID;
     private boolean readResponding;
@@ -52,27 +52,27 @@ public class OwenPRModel extends Observable {
     }
 
     void setStatesProtections(short statesProtections) {
-        notice(PRIM2, (statesProtections & 0b1) > 0);
-        notice(PRIM4, (statesProtections & 0b10) > 0);
-        notice(PRIM5, (statesProtections & 0b100) > 0);
-        notice(PRIM3, (statesProtections & 0b1000) > 0);
-        notice(PRIM1, (statesProtections & 0b10000) > 0);
-    }
-
-    void setStatesButtons(short statesButtons) {
-        notice(PRI7, (statesButtons & 0b1) > 0);
-        notice(PRI8, (statesButtons & 0b10) > 0);
-        notice(PRIM6, (statesButtons & 0b100) > 0);
-        notice(PRIM7, (statesButtons & 0b1000) > 0);
-        notice(PRIM8, (statesButtons & 0b10000) > 0);
+        notice(ТКЗ_ДО_ТРАНСФОРМАТОРА, (statesProtections & 0b1) > 0);
+        notice(ТКЗ_ОИ, (statesProtections & 0b10) > 0);
+        notice(ТКЗ_ПОСЛЕ_ТРАНСФОРМАТОРА, (statesProtections & 0b100) > 0);
+        notice(КОНТРОЛЬ_ДВЕРЕЙ_ШСО, (statesProtections & 0b1000) > 0);
+        notice(КОНТРОЛЬ_ПУСКА, (statesProtections & 0b10000) > 0);
     }
 
     void setMode(short mode) {
-        notice(PRI1, (mode & 0b1) > 0);
-        notice(PRI2, (mode & 0b10) > 0);
-        notice(PRI3, (mode & 0b100) > 0);
-        notice(PRI4, (mode & 0b1000) > 0);
-        notice(PRI5, (mode & 0b10000) > 0);
+        notice(РУЧНОЙ_РЕЖИМ, (mode & 0b1) > 0);
+        notice(РУЧНОЙ_РЕЖИМ_С_ПК, (mode & 0b10) > 0);
+        notice(ПЕРЕМЕННОЕ, (mode & 0b100) > 0);
+        notice(ПЕРЕМЕННОЕ_С_РЕЗОНАНСОМ, (mode & 0b1000) > 0);
+        notice(ПОСТОЯННОЕ, (mode & 0b10000) > 0);
+    }
+
+    void setStatesButtons(short statesButtons) {
+        notice(СТАРТ, (statesButtons & 0b1) > 0);
+        notice(СТОП, (statesButtons & 0b10) > 0);
+        notice(СТОП_ИСПЫТАНИЯ, (statesButtons & 0b100) > 0);
+        notice(ПОДЪЕМ_НАПРЯЖЕНИЯ, (statesButtons & 0b1000) > 0);
+        notice(УМЕНЬШЕНИЕ_НАПРЯЖЕНИЯ, (statesButtons & 0b10000) > 0);
     }
 
     private void notice(int param, Object value) {

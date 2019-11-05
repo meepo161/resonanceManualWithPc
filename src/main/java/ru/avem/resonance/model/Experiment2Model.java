@@ -10,11 +10,9 @@ import java.util.List;
 public class Experiment2Model {
 
     private final StringProperty voltage;
-    private final StringProperty currentA;
+    private final StringProperty voltageARN;
     private final StringProperty currentB;
-    private final StringProperty currentC;
-    private final StringProperty currentLeak;
-    private final StringProperty frequency;
+    private final StringProperty currentOI;
     private final StringProperty result;
     private List<StringProperty> properties = new ArrayList<>();
     private ArrayList<StringProperty> protocol = new ArrayList<>();
@@ -22,38 +20,30 @@ public class Experiment2Model {
 
     public Experiment2Model() {
         voltage = new SimpleStringProperty("");
-        currentA = new SimpleStringProperty("");
+        voltageARN = new SimpleStringProperty("");
         currentB = new SimpleStringProperty("");
-        currentC = new SimpleStringProperty("");
-        currentLeak = new SimpleStringProperty("");
-        frequency = new SimpleStringProperty("");
+        currentOI = new SimpleStringProperty("");
         result = new SimpleStringProperty("");
         properties.addAll(Arrays.asList(
                 voltage,
-                currentA,
+                voltageARN,
                 currentB,
-                currentC,
-                currentLeak,
-                frequency,
+                currentOI,
                 result));
     }
 
     public Experiment2Model(
-            String voltage, String currentA, String currentB, String currentC, String currentLeak, String frequency, String result) {
+            String voltage, String voltageARN, String currentB, String currentOI, String result) {
         this.voltage = new SimpleStringProperty(voltage);
-        this.currentA = new SimpleStringProperty(currentA);
+        this.voltageARN = new SimpleStringProperty(voltageARN);
         this.currentB = new SimpleStringProperty(currentB);
-        this.currentC = new SimpleStringProperty(currentC);
-        this.currentLeak = new SimpleStringProperty(currentLeak);
-        this.frequency = new SimpleStringProperty(frequency);
+        this.currentOI = new SimpleStringProperty(currentOI);
         this.result = new SimpleStringProperty(result);
         protocol.addAll(Arrays.asList(
                 this.voltage,
-                this.currentA,
+                this.voltageARN,
                 this.currentB,
-                this.currentC,
-                this.currentLeak,
-                this.frequency,
+                this.currentOI,
                 this.result
         ));
     }
@@ -70,16 +60,16 @@ public class Experiment2Model {
         this.voltage.set(voltage);
     }
 
-    public String getCurrentA() {
-        return currentA.get();
+    public String getVoltageARN() {
+        return voltageARN.get();
     }
 
-    public StringProperty currentAProperty() {
-        return currentA;
+    public StringProperty voltageARNProperty() {
+        return voltageARN;
     }
 
-    public void setCurrentA(String currentA) {
-        this.currentA.set(currentA);
+    public void setVoltageARN(String voltageARN) {
+        this.voltageARN.set(voltageARN);
     }
 
     public String getCurrentB() {
@@ -94,40 +84,16 @@ public class Experiment2Model {
         this.currentB.set(currentB);
     }
 
-    public String getCurrentC() {
-        return currentC.get();
+    public String getCurrentOI() {
+        return currentOI.get();
     }
 
-    public StringProperty currentCProperty() {
-        return currentC;
+    public StringProperty currentOIProperty() {
+        return currentOI;
     }
 
-    public void setCurrentC(String currentC) {
-        this.currentC.set(currentC);
-    }
-
-    public String getCurrentLeak() {
-        return currentLeak.get();
-    }
-
-    public StringProperty currentLeakProperty() {
-        return currentLeak;
-    }
-
-    public void setCurrentLeak(String currentLeak) {
-        this.currentLeak.set(currentLeak);
-    }
-
-    public String getFrequency() {
-        return frequency.get();
-    }
-
-    public StringProperty frequencyProperty() {
-        return frequency;
-    }
-
-    public void setFrequency(String frequency) {
-        this.frequency.set(frequency);
+    public void setCurrentOI(String currentOI) {
+        this.currentOI.set(currentOI);
     }
 
     public String getResult() {

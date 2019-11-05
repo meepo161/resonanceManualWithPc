@@ -182,23 +182,9 @@ public class CommunicationModel extends Observable implements Observer {
     }
 
     private void resetDog() {
-        if (lastOne) {
-            owenPRController.write(RESET_DOG, 1, 0);
-            lastOne = false;
-        } else {
-            owenPRController.write(RESET_DOG, 1, 1);
-            lastOne = true;
-        }
-    }
-
-    private void resetTimer() {
-        lastOne = true;
-
-        owenPRController.write(RESET_DOG, 1, 0);
         owenPRController.write(RESET_DOG, 1, 1);
-        owenPRController.write(RESET_TIMER, 1, 1);
-        owenPRController.write(RESET_TIMER, 1, 0);
     }
+
 
     public void offAllKms() {
         kms1 = 0;
@@ -252,7 +238,6 @@ public class CommunicationModel extends Observable implements Observer {
         owenPRController.resetAllAttempts();
         owenPRController.setNeedToRead(true);
         offAllKms();
-        resetTimer();
         owenPRController.write(MODE_REGISTER, 1, 1);
     }
 
@@ -292,23 +277,96 @@ public class CommunicationModel extends Observable implements Observer {
         deltaCP2000Controller.write(POINT_1_VOLTAGE_REGISTER, 1, voltageMax);
     }
 
-    public void startUpLATRFast(float voltage, boolean isNeedReset) {
+    public void startUpLATRUp(float voltage, boolean isNeedReset) {
         Logger.withTag("STARTUP_LATR").log("startUpLATR");
         if (isNeedReset) {
             latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
         }
-        voltage *= 1.1f;
+        int minDutty = 400;
+        int maxDutty = 200;
+        float corridor = 0.05f;
+        float delta = 0.05f;
+        int timeMinPulse = 50;
+        int timeMaxPulse = 300;
+        float timeMinPulsePercent = 20.0f;
+        float timeMaxPulsePercent = 22.0f;
+        float minDuttyPercent = 24.0f;
+        float maxDuttyPercent = 28.0f;
+        float timeMinPeriod = 10.0f;
+        float timeMaxPeriod = 100.0f;
+        float minVoltage = 200f;
+        Logger.withTag("REGULATION").log("voltage=" + voltage);
+        latrController.write(VALUE_REGISTER, voltage);
+//        latrController.write(TIME_MIN_PULSE_REGISTER, timeMinPulse);
+//        latrController.write(TIME_MAX_PULSE_REGISTER, timeMaxPulse);
+//        latrController.write(MIN_DUTTY_REGISTER, minDutty);
+//        latrController.write(MAX_DUTTY_REGISTER, maxDutty);
+        latrController.write(IR_TIME_PERIOD_MIN, timeMinPulsePercent);
+        latrController.write(IR_TIME_PERIOD_MAX, timeMaxPulsePercent);
+        latrController.write(IR_TIME_PULSE_MIN_PERCENT, timeMinPeriod);
+        latrController.write(IR_TIME_PULSE_MAX_PERCENT, timeMaxPeriod);
+        latrController.write(IR_DUTY_MIN_PERCENT, minDuttyPercent);
+        latrController.write(IR_DUTY_MAX_PERCENT, maxDuttyPercent);
+        latrController.write(REGULATION_TIME_REGISTER, 300000);
+        latrController.write(CORRIDOR_REGISTER, corridor);
+        latrController.write(DELTA_REGISTER, delta);
+        latrController.write(MIN_VOLTAGE_LIMIT_REGISTER, minVoltage);
+        latrController.write(START_STOP_REGISTER, 1);
+    }
+
+    public void startUpLATRDown(float voltage, boolean isNeedReset) {
+        Logger.withTag("STARTUP_LATR").log("startUpLATR");
+        if (isNeedReset) {
+            latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
+        }
+        int minDutty = 400;
+        int maxDutty = 200;
+        float corridor = 0.05f;
+        float delta = 0.05f;
+        int timeMinPulse = 50;
+        int timeMaxPulse = 300;
+        float timeMinPulsePercent = 20.0f;
+        float timeMaxPulsePercent = 20.0f;
+        float minDuttyPercent = 34.0f;
+        float maxDuttyPercent = 36.0f;
+        float timeMinPeriod = 100.0f;
+        float timeMaxPeriod = 100.0f;
+        float minVoltage = 200f;
+        Logger.withTag("REGULATION").log("voltage=" + voltage);
+        latrController.write(VALUE_REGISTER, voltage);
+//        latrController.write(TIME_MIN_PULSE_REGISTER, timeMinPulse);
+//        latrController.write(TIME_MAX_PULSE_REGISTER, timeMaxPulse);
+//        latrController.write(MIN_DUTTY_REGISTER, minDutty);
+//        latrController.write(MAX_DUTTY_REGISTER, maxDutty);
+        latrController.write(IR_TIME_PERIOD_MIN, timeMinPulsePercent);
+        latrController.write(IR_TIME_PERIOD_MAX, timeMaxPulsePercent);
+        latrController.write(IR_TIME_PULSE_MIN_PERCENT, timeMinPeriod);
+        latrController.write(IR_TIME_PULSE_MAX_PERCENT, timeMaxPeriod);
+        latrController.write(IR_DUTY_MIN_PERCENT, minDuttyPercent);
+        latrController.write(IR_DUTY_MAX_PERCENT, maxDuttyPercent);
+        latrController.write(REGULATION_TIME_REGISTER, 300000);
+        latrController.write(CORRIDOR_REGISTER, corridor);
+        latrController.write(DELTA_REGISTER, delta);
+        latrController.write(MIN_VOLTAGE_LIMIT_REGISTER, minVoltage);
+        latrController.write(START_STOP_REGISTER, 1);
+    }
+
+    public void startUpLATRCharge(float voltage, boolean isNeedReset) {
+        Logger.withTag("STARTUP_LATR").log("startUpLATR");
+        if (isNeedReset) {
+            latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
+        }
         int minDutty = 400;
         int maxDutty = 200;
         float corridor = 0.01f;
-        float delta = 0.02f;
+        float delta = 0.002f;
         int timeMinPulse = 50;
         int timeMaxPulse = 300;
-        float timeMinPulsePercent = 100.0f;
-        float timeMaxPulsePercent = 95.0f;
-        float minDuttyPercent = 100.0f;
-        float maxDuttyPercent = 95.0f;
-        float timeMinPeriod = 10.0f;
+        float timeMinPulsePercent = 25.0f;
+        float timeMaxPulsePercent = 25.0f;
+        float minDuttyPercent = 50.0f;
+        float maxDuttyPercent = 50.0f;
+        float timeMinPeriod = 100.0f;
         float timeMaxPeriod = 100.0f;
         float minVoltage = 200f;
         Logger.withTag("REGULATION").log("voltage=" + voltage);
@@ -335,19 +393,18 @@ public class CommunicationModel extends Observable implements Observer {
         if (isNeedReset) {
             latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
         }
-        voltage *= 1.1f;
-        float corridor = 0.01f;
-        float delta = 0.02f;
+        float corridor = 0.05f;
+        float delta = 0.05f;
         float timeMinPulsePercent = 100.0f;
         float timeMinPeriod = 10.0f;
         float timeMaxPeriod = 100.0f;
         float minVoltage = 200f;
         Logger.withTag("REGULATION").log("voltage=" + voltage);
         latrController.write(VALUE_REGISTER, voltage);
-        latrController.write(IR_TIME_PERIOD_MIN, timeMinPulsePercent);
-        latrController.write(IR_TIME_PERIOD_MAX, timeMaxPulsePercent);
-        latrController.write(IR_TIME_PULSE_MIN_PERCENT, timeMinPeriod);
-        latrController.write(IR_TIME_PULSE_MAX_PERCENT, timeMaxPeriod);
+        latrController.write(IR_TIME_PERIOD_MIN, timeMinPeriod);
+        latrController.write(IR_TIME_PERIOD_MAX, timeMaxPeriod);
+        latrController.write(IR_TIME_PULSE_MIN_PERCENT, timeMinPulsePercent);
+        latrController.write(IR_TIME_PULSE_MAX_PERCENT, timeMaxPulsePercent);
         latrController.write(IR_DUTY_MIN_PERCENT, dutty);
         latrController.write(IR_DUTY_MAX_PERCENT, dutty);
         latrController.write(REGULATION_TIME_REGISTER, 300000);
@@ -357,43 +414,6 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.write(START_STOP_REGISTER, 1);
     }
 
-    public void startUpLATRSlow(float voltage, boolean isNeedReset) {
-        Logger.withTag("STARTUP_LATR").log("startUpLATR");
-        if (isNeedReset) {
-            latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
-        }
-        voltage *= 1.1f;
-        int minDutty = 400;
-        int maxDutty = 200;
-        float corridor = 0.01f;
-        float delta = 0.01f;
-        int timeMinPulse = 50;
-        int timeMaxPulse = 300;
-        float timeMinPulsePercent = 70.0f;
-        float timeMaxPulsePercent = 70.0f;
-        float minDuttyPercent = 25.0f;
-        float maxDuttyPercent = 25.0f;
-        float timeMinPeriod = 10.0f;
-        float timeMaxPeriod = 100.0f;
-        float minVoltage = 200f;
-        Logger.withTag("REGULATION").log("voltage=" + voltage);
-        latrController.write(VALUE_REGISTER, voltage);
-//        latrController.write(TIME_MIN_PULSE_REGISTER, timeMinPulse);
-//        latrController.write(TIME_MAX_PULSE_REGISTER, timeMaxPulse);
-//        latrController.write(MIN_DUTTY_REGISTER, minDutty);
-//        latrController.write(MAX_DUTTY_REGISTER, maxDutty);
-        latrController.write(IR_TIME_PERIOD_MIN, timeMinPulsePercent);
-        latrController.write(IR_TIME_PERIOD_MAX, timeMaxPulsePercent);
-        latrController.write(IR_TIME_PULSE_MIN_PERCENT, timeMinPeriod);
-        latrController.write(IR_TIME_PULSE_MAX_PERCENT, timeMaxPeriod);
-        latrController.write(IR_DUTY_MIN_PERCENT, minDuttyPercent);
-        latrController.write(IR_DUTY_MAX_PERCENT, maxDuttyPercent);
-        latrController.write(REGULATION_TIME_REGISTER, 300000);
-        latrController.write(CORRIDOR_REGISTER, corridor);
-        latrController.write(DELTA_REGISTER, delta);
-        latrController.write(MIN_VOLTAGE_LIMIT_REGISTER, minVoltage);
-        latrController.write(START_STOP_REGISTER, 1);
-    }
 
     public void startLATR() {
         latrController.write(START_STOP_REGISTER, 1);
@@ -408,7 +428,6 @@ public class CommunicationModel extends Observable implements Observer {
     }
 
     public void initExperimentDevices() {
-        resetTimer();
         pm130Controller.setNeedToRead(true);
         pm130Controller.resetAllAttempts();
         avemVoltmeterController.setNeedToRead(true);

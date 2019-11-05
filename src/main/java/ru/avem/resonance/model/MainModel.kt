@@ -17,6 +17,7 @@ class MainModel private constructor() {
     var experiment1Model = Experiment1Model()
     var experiment2Model = Experiment2Model()
     var experiment3Model = Experiment3Model()
+    var experiment1ManualModel = Experiment1ManualModel()
 
     fun setTesters(tester1: Account, tester2: Account) {
         this.firstTester = tester1
