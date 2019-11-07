@@ -185,6 +185,11 @@ public class CommunicationModel extends Observable implements Observer {
         owenPRController.write(RESET_DOG, 1, 1);
     }
 
+    public void resetResPR200() {
+        owenPRController.write(RES, 1, 1);
+        owenPRController.write(RES, 1, 0);
+    }
+
 
     public void offAllKms() {
         kms1 = 0;
@@ -239,6 +244,7 @@ public class CommunicationModel extends Observable implements Observer {
         owenPRController.setNeedToRead(true);
         offAllKms();
         owenPRController.write(MODE_REGISTER, 1, 1);
+        resetResPR200();
     }
 
     public void startObject() {
@@ -277,6 +283,10 @@ public class CommunicationModel extends Observable implements Observer {
         deltaCP2000Controller.write(POINT_1_VOLTAGE_REGISTER, 1, voltageMax);
     }
 
+    public void resetLATR() {
+        latrController.write(START_STOP_REGISTER, 0x5A5A5A5A);
+    }
+
     public void startUpLATRUp(float voltage, boolean isNeedReset) {
         Logger.withTag("STARTUP_LATR").log("startUpLATR");
         if (isNeedReset) {
@@ -294,7 +304,7 @@ public class CommunicationModel extends Observable implements Observer {
         float maxDuttyPercent = 28.0f;
         float timeMinPeriod = 10.0f;
         float timeMaxPeriod = 100.0f;
-        float minVoltage = 200f;
+        float minVoltage = 400f;
         Logger.withTag("REGULATION").log("voltage=" + voltage);
         latrController.write(VALUE_REGISTER, voltage);
 //        latrController.write(TIME_MIN_PULSE_REGISTER, timeMinPulse);
@@ -325,13 +335,13 @@ public class CommunicationModel extends Observable implements Observer {
         float delta = 0.05f;
         int timeMinPulse = 50;
         int timeMaxPulse = 300;
-        float timeMinPulsePercent = 20.0f;
-        float timeMaxPulsePercent = 20.0f;
+        float timeMinPulsePercent = 40.0f;
+        float timeMaxPulsePercent = 50.0f;
         float minDuttyPercent = 34.0f;
         float maxDuttyPercent = 36.0f;
-        float timeMinPeriod = 100.0f;
-        float timeMaxPeriod = 100.0f;
-        float minVoltage = 200f;
+        float timeMinPeriod = 500.0f;
+        float timeMaxPeriod = 500.0f;
+        float minVoltage = 400f;
         Logger.withTag("REGULATION").log("voltage=" + voltage);
         latrController.write(VALUE_REGISTER, voltage);
 //        latrController.write(TIME_MIN_PULSE_REGISTER, timeMinPulse);
@@ -368,7 +378,7 @@ public class CommunicationModel extends Observable implements Observer {
         float maxDuttyPercent = 50.0f;
         float timeMinPeriod = 100.0f;
         float timeMaxPeriod = 100.0f;
-        float minVoltage = 200f;
+        float minVoltage = 400f;
         Logger.withTag("REGULATION").log("voltage=" + voltage);
         latrController.write(VALUE_REGISTER, voltage);
 //        latrController.write(TIME_MIN_PULSE_REGISTER, timeMinPulse);
@@ -396,9 +406,9 @@ public class CommunicationModel extends Observable implements Observer {
         float corridor = 0.05f;
         float delta = 0.05f;
         float timeMinPulsePercent = 100.0f;
-        float timeMinPeriod = 10.0f;
-        float timeMaxPeriod = 100.0f;
-        float minVoltage = 200f;
+        float timeMinPeriod = 500.0f;
+        float timeMaxPeriod = 50.0f;
+        float minVoltage = 440f;
         Logger.withTag("REGULATION").log("voltage=" + voltage);
         latrController.write(VALUE_REGISTER, voltage);
         latrController.write(IR_TIME_PERIOD_MIN, timeMinPeriod);
@@ -476,7 +486,7 @@ public class CommunicationModel extends Observable implements Observer {
     }
 
     public void таймер_On() {
-        offRegisterInTheKms(8, 1);
+        onRegisterInTheKms(8, 1);
     }
 
     public void разрешениеНаЗапуск_Off() {
@@ -519,6 +529,10 @@ public class CommunicationModel extends Observable implements Observer {
         onRegisterInTheKms(2, 2);
     }
 
+    public void внимание_On() {
+        onRegisterInTheKms(3, 2);
+    }
+
     public void подсветкаТаймер_Off() {
         offRegisterInTheKms(1, 2);
     }
@@ -527,6 +541,9 @@ public class CommunicationModel extends Observable implements Observer {
         offRegisterInTheKms(2, 2);
     }
 
+    public void внимание_Off() {
+        offRegisterInTheKms(3, 2);
+    }
 
     public void setDeviceStateOn(boolean deviceStateOn) {
         isDeviceStateOn = deviceStateOn;

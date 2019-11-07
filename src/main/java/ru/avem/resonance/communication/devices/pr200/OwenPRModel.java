@@ -10,9 +10,9 @@ public class OwenPRModel extends Observable {
     public static final int ПЕРЕМЕННОЕ = 3;
     public static final int ПЕРЕМЕННОЕ_С_РЕЗОНАНСОМ = 4;
     public static final int ПОСТОЯННОЕ = 5;
-    public static final int PRI6 = 6;
-    public static final int СТАРТ = 7;
-    public static final int СТОП = 8;
+    public static final int КОНТРОЛЬ_РУБИЛЬНИКА = 6;
+    public static final int СТАРТ_ТАЙМЕР = 7;
+    public static final int СТОП_ТАЙМЕР = 8;
 
     public static final int КОНТРОЛЬ_ПУСКА = 9;
     public static final int ТКЗ_ДО_ТРАНСФОРМАТОРА = 10;
@@ -22,6 +22,7 @@ public class OwenPRModel extends Observable {
     public static final int СТОП_ИСПЫТАНИЯ = 14;
     public static final int ПОДЪЕМ_НАПРЯЖЕНИЯ = 15;
     public static final int УМЕНЬШЕНИЕ_НАПРЯЖЕНИЯ = 16;
+    public static final int УМЕНЬШЕНИЕ_НАПРЯЖЕНИЯ_ОТЖАТ = 17;
 
     private int deviceID;
     private boolean readResponding;
@@ -32,7 +33,7 @@ public class OwenPRModel extends Observable {
         this.deviceID = deviceID;
     }
 
- void resetResponding() {
+    void resetResponding() {
         readResponding = true;
         writeResponding = true;
     }
@@ -57,6 +58,7 @@ public class OwenPRModel extends Observable {
         notice(ТКЗ_ПОСЛЕ_ТРАНСФОРМАТОРА, (statesProtections & 0b100) > 0);
         notice(КОНТРОЛЬ_ДВЕРЕЙ_ШСО, (statesProtections & 0b1000) > 0);
         notice(КОНТРОЛЬ_ПУСКА, (statesProtections & 0b10000) > 0);
+        notice(КОНТРОЛЬ_РУБИЛЬНИКА, (statesProtections & 0b100000) > 0);
     }
 
     void setMode(short mode) {
@@ -68,11 +70,13 @@ public class OwenPRModel extends Observable {
     }
 
     void setStatesButtons(short statesButtons) {
-        notice(СТАРТ, (statesButtons & 0b1) > 0);
-        notice(СТОП, (statesButtons & 0b10) > 0);
+        notice(СТАРТ_ТАЙМЕР, (statesButtons & 0b1) > 0);
+        notice(СТОП_ТАЙМЕР, (statesButtons & 0b10) > 0);
         notice(СТОП_ИСПЫТАНИЯ, (statesButtons & 0b100) > 0);
         notice(ПОДЪЕМ_НАПРЯЖЕНИЯ, (statesButtons & 0b1000) > 0);
         notice(УМЕНЬШЕНИЕ_НАПРЯЖЕНИЯ, (statesButtons & 0b10000) > 0);
+        notice(УМЕНЬШЕНИЕ_НАПРЯЖЕНИЯ_ОТЖАТ, (statesButtons & 0b10000) == 0);
+
     }
 
     private void notice(int param, Object value) {

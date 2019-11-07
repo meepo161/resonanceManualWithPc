@@ -693,7 +693,7 @@ class Experiment3Controller : DeviceState(), ExperimentController {
             sleep(1000)
             communicationModel.stopObject()
         }
-        if (statusEndsVFD == OMIK_DOWN_END) {
+        if (statusEndsVFD == OMIK_DOWN_END && isExperimentRunning) {
             appendOneMessageToLog("ОМИК в нижнем положении")
         }
         communicationModel.stopObject()
@@ -792,10 +792,10 @@ class Experiment3Controller : DeviceState(), ExperimentController {
                 OwenPRModel.ПОСТОЯННОЕ -> {
                     постоянное = value as Boolean
                 }
-                OwenPRModel.СТАРТ -> {
+                OwenPRModel.СТАРТ_ТАЙМЕР -> {
                     старт = value as Boolean
                 }
-                OwenPRModel.СТОП -> {
+                OwenPRModel.СТОП_ТАЙМЕР -> {
                     стоп = value as Boolean
                 }
                 OwenPRModel.СТОП_ИСПЫТАНИЯ -> {

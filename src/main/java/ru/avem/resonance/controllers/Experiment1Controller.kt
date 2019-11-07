@@ -343,7 +343,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 sleep(1000)
 
                 Platform.runLater {
-                    realTime += 0.1
+                    realTime += 1
                     lineChartExperiment1.data.clear()
                     seriesTimesAndVoltage.data.add(XYChart.Data(realTime, measuringU))
                     lineChartExperiment1.data.add(seriesTimesAndVoltage)
@@ -408,7 +408,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 communicationModel.initExperimentDevices()
                 communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
                 sleep(1000)
-                communicationModel.startUpLATRDown(0f, true)
+                communicationModel.resetLATR()
             }
 
             while (!isDevicesResponding) {
@@ -532,7 +532,11 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 sleep(10)
             }
             communicationModel.stopLATR()
-            resetOmik()
+
+            if (!стопИспытания) {
+                resetOmik()
+            }
+
 //            communicationModel.stopObject()
             var timeToSleep = 300
             while (isExperimentRunning && (timeToSleep-- > 0)) {
@@ -746,7 +750,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
             sleep(1000)
             communicationModel.stopObject()
         }
-        if (statusEndsVFD == OMIK_DOWN_END) {
+        if (statusEndsVFD == OMIK_DOWN_END && isExperimentRunning) {
             appendOneMessageToLog("ОМИК в нижнем положении")
         }
         communicationModel.stopObject()
@@ -845,10 +849,10 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 OwenPRModel.ПОСТОЯННОЕ -> {
                     постоянное = value as Boolean
                 }
-                OwenPRModel.СТАРТ -> {
+                OwenPRModel.СТАРТ_ТАЙМЕР -> {
                     старт = value as Boolean
                 }
-                OwenPRModel.СТОП -> {
+                OwenPRModel.СТОП_ТАЙМЕР -> {
                     стоп = value as Boolean
                 }
                 OwenPRModel.СТОП_ИСПЫТАНИЯ -> {
@@ -976,7 +980,7 @@ class Experiment1Controller : DeviceState(), ExperimentController {
                 setCause("Время регулирования ЛАТРа превысило заданное.")
             }
             LATR_ZASTRYAL -> {
-                setCause("Застревание ЛАТРа.")
+                appendOneMessageToLog("Застревание ЛАТРа.")
             }
         }
     }

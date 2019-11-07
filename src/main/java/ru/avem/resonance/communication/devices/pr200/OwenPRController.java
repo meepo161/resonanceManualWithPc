@@ -13,7 +13,7 @@ public class OwenPRController implements DeviceController {
     public static final short KMS1_REGISTER = 516;
     public static final short KMS2_REGISTER = 517;
     public static final short RESET_DOG = 512;
-    public static final short RESET_TIMER = 518;
+    public static final short RES = 518;
 
     private static final int NUM_OF_WORDS_IN_REGISTER = 1;
     private static final short NUM_OF_REGISTERS = 2 * NUM_OF_WORDS_IN_REGISTER;
