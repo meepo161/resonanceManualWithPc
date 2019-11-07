@@ -313,7 +313,6 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
             if (isExperimentRunning) {
                 appendOneMessageToLog("Визуально осматривайте трансфоматор на наличие потеков масла перед каждым опытом")
                 communicationModel.initOwenPrController()
-                communicationModel.resetResPR200()
                 appendOneMessageToLog("Инициализация системы")
                 communicationModel.initExperimentDevices()
             }
@@ -706,7 +705,7 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 OwenPRModel.СТОП_ИСПЫТАНИЯ -> {
                     стопИспытания = value as Boolean
                     if (стопИспытания) {
-                        isExperimentRunning = false
+                        setCause("Во время испытания была нажата кнопка СТОП")
                     }
                 }
                 OwenPRModel.ПОДЪЕМ_НАПРЯЖЕНИЯ -> {

@@ -11,7 +11,6 @@ import javafx.scene.layout.AnchorPane
 import javafx.stage.Stage
 import javafx.stage.StageStyle
 import ru.avem.resonance.communication.CommunicationModel
-import ru.avem.resonance.controllers.Experiment1ManualController
 import ru.avem.resonance.controllers.LoginController
 import ru.avem.resonance.controllers.MainViewController
 import ru.avem.resonance.db.DataBaseRepository
@@ -25,7 +24,6 @@ class Main : Application(), Exitappable {
     private var mainViewScene: Scene? = null
 
     private var mainViewController: MainViewController? = null
-    private var experiment1ManualController: Experiment1ManualController? = null
     private var communicationModel: CommunicationModel? = null
     private var firstRun = true
 
@@ -73,7 +71,6 @@ class Main : Application(), Exitappable {
             }
         }
     }
-
 
     @Throws(IOException::class)
     private fun createMainViewScene() {

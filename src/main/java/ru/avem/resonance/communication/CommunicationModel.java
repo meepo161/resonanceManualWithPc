@@ -241,10 +241,10 @@ public class CommunicationModel extends Observable implements Observer {
 
     public void initOwenPrController() {
         owenPRController.resetAllAttempts();
+        resetResPR200();
         owenPRController.setNeedToRead(true);
         offAllKms();
         owenPRController.write(MODE_REGISTER, 1, 1);
-        resetResPR200();
     }
 
     public void startObject() {
