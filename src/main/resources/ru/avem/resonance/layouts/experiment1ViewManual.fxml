@@ -91,6 +91,8 @@
                         </HBox>
                         <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="16.0">
                             <children>
+                                <Button fx:id="buttonSaveDot" minHeight="-Infinity" minWidth="-Infinity"
+                                        mnemonicParsing="false" onAction="#handleSaveDot" text="Сохранить точку"/>
                                 <Button fx:id="buttonCancelAll" minHeight="-Infinity" minWidth="-Infinity"
                                         mnemonicParsing="false" onAction="#handleExperimentCancel" text="Отменить"/>
                             </children>

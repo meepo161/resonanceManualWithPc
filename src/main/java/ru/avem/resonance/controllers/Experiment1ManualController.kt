@@ -62,6 +62,8 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
     @FXML
     lateinit var buttonCancelAll: Button
     @FXML
+    lateinit var buttonSaveDot: Button
+    @FXML
     lateinit var root: AnchorPane
     @FXML
     lateinit var gridPaneTimeTorque: GridPane
@@ -881,5 +883,10 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
 
     override fun isCanceled(): Boolean {
         return isCanceled
+    }
+
+    @FXML
+    fun handleSaveDot() {
+
     }
 }
