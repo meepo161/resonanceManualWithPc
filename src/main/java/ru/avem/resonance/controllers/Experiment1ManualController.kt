@@ -31,6 +31,7 @@ import ru.avem.resonance.model.Experiment1ManualModel
 import ru.avem.resonance.model.MainModel
 import ru.avem.resonance.model.Point
 import ru.avem.resonance.utils.Utils.sleep
+import java.lang.Math.abs
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -322,9 +323,8 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
             }
 
             if (isExperimentRunning) {
-                communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
-                sleep(1000)
                 communicationModel.resetLATR()
+                communicationModel.startUpLATRUp(1f, true)
                 communicationModel.приемКоманды_On()
             }
 
@@ -334,7 +334,7 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
 
             if (isExperimentRunning) {
                 communicationModel.разрешениеНаЗапуск_On()
-                appendOneMessageToLog("ЖМИ ПУСК")
+                appendOneMessageToLog("Нажмите кнопку ПУСК")
             }
 
             while (!контрольПуска && isExperimentRunning) {
@@ -355,9 +355,9 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 sleep(10)
             }
 
-            while (!контрольПуска && isExperimentRunning) {
+            if (!контрольПуска && isExperimentRunning) {
                 communicationModel.разрешениеНаЗапуск_On()
-                sleep(100)
+                appendOneMessageToLog("Нажмите кнопку ПУСК")
             }
 
             while (!контрольПуска && isExperimentRunning) {
@@ -377,10 +377,12 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 appendOneMessageToLog("Запускаем ЧП")
                 resetOmik()
                 if (постоянное) {
+                    communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_AMP.ordinal)
                     communicationModel.последовательнаяСхема_On()
                     communicationModel.авэм_On()
                 } else {
                     communicationModel.параллельнаяСхема_On()
+                    communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
                 }
                 communicationModel.короткозамыкатель_On()
             }
@@ -435,12 +437,10 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
             if (контрольРубильника) {
                 appendOneMessageToLog("Отключите рубильник")
                 communicationModel.внимание_On()
-                sleep(1000)
-//                communicationModel.звук_On()
             }
 
             while (контрольРубильника) {
-                sleep(100)
+                sleep(10)
             }
 
             if (isExperimentRunning) {
@@ -465,8 +465,6 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 appendMessageToLog("Испытание завершено успешно")
             }
             appendMessageToLog("\n------------------------------------------------\n")
-
-            sleep(5000)
 
             isExperimentEnded = true
             isExperimentRunning = false
@@ -710,19 +708,19 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 }
                 OwenPRModel.ПОДЪЕМ_НАПРЯЖЕНИЯ -> {
                     подъемНапряжения = value as Boolean
-                    if (подъемНапряжения && !уменьшениеНапряжения && isManualNeed) {
-                        communicationModel.startUpLATRWithRegulationSpeed(440f, false, 50f, 100f)
+                    if (подъемНапряжения && !уменьшениеНапряжения/* && isManualNeed*/) {
+                        communicationModel.startUpLATRWithRegulationSpeed(500f, false, 100f, 100f)
                     }
-                    if (!подъемНапряжения && !уменьшениеНапряжения && isManualNeed) {
+                    if (!подъемНапряжения && !уменьшениеНапряжения /*&& isManualNeed*/) {
                         communicationModel.stopLATR()
                     }
                 }
                 OwenPRModel.УМЕНЬШЕНИЕ_НАПРЯЖЕНИЯ -> {
                     уменьшениеНапряжения = value as Boolean
-                    if (уменьшениеНапряжения && !подъемНапряжения && isManualNeed) {
-                        communicationModel.startUpLATRWithRegulationSpeed(1f, false, 50f, 100f)
+                    if (уменьшениеНапряжения && !подъемНапряжения /*&& isManualNeed*/) {
+                        communicationModel.startUpLATRWithRegulationSpeed(1f, false, 100f, 100f)
                     }
-                    if (!уменьшениеНапряжения && !подъемНапряжения && isManualNeed) {
+                    if (!уменьшениеНапряжения && !подъемНапряжения /*&& isManualNeed*/) {
                         communicationModel.stopLATR()
                     }
                 }
@@ -785,10 +783,20 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                     Platform.runLater { deviceStateCircleKiloAvem.fill = if (value) Color.LIME else Color.RED }
                 }
                 AvemVoltmeterModel.U_RMS_PARAM -> {
-                    measuringU = (value as Float) * 1000
-                    coef = (measuringU / (measuringULatr / 102)).toDouble()
-                    val kiloAvemU = String.format("%.2f", measuringU)
-                    experiment1ManualModel!!.voltage = kiloAvemU
+                    if (!постоянное) {
+                        measuringU = (value as Float) * 1000
+                        coef = (measuringU / (measuringULatr / 102)).toDouble()
+                        val kiloAvemU = String.format("%.2f", measuringU)
+                        experiment1ManualModel!!.voltage = kiloAvemU
+                    }
+                }
+                AvemVoltmeterModel.U_AMP_PARAM -> {
+                    if (постоянное) {
+                        measuringU = abs((value as Float) * 1000)
+                        coef = (measuringU / (measuringULatr / 102)).toDouble()
+                        val kiloAvemU = String.format("%.2f", measuringU)
+                        experiment1ManualModel!!.voltage = kiloAvemU
+                    }
                 }
             }
 

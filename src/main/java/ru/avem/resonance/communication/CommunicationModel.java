@@ -406,8 +406,8 @@ public class CommunicationModel extends Observable implements Observer {
         float corridor = 0.05f;
         float delta = 0.05f;
         float timeMinPulsePercent = 100.0f;
-        float timeMinPeriod = 500.0f;
-        float timeMaxPeriod = 50.0f;
+        float timeMinPeriod = 100.0f;
+        float timeMaxPeriod = 100.0f;
         float minVoltage = 440f;
         Logger.withTag("REGULATION").log("voltage=" + voltage);
         latrController.write(VALUE_REGISTER, voltage);
