@@ -376,13 +376,20 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 communicationModel.setObjectParams(50 * 100, 380 * 10, 50 * 100)
                 appendOneMessageToLog("Запускаем ЧП")
                 resetOmik()
-                if (постоянное) {
-                    communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_AMP.ordinal)
-                    communicationModel.последовательнаяСхема_On()
-                    communicationModel.авэм_On()
-                } else {
-                    communicationModel.параллельнаяСхема_On()
-                    communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
+                when {
+                    постоянное -> {
+                        communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_AMP.ordinal)
+                        communicationModel.параллельнаяСхема_On()
+                        communicationModel.авэм_On()
+                    }
+                    резонанс -> {
+                        communicationModel.последовательнаяСхема_On()
+                        communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
+                    }
+                    переменное -> {
+                        communicationModel.параллельнаяСхема_On()
+                        communicationModel.setKiloAvemShowValue(Constants.Avem.VOLTAGE_RMS.ordinal)
+                    }
                 }
                 communicationModel.короткозамыкатель_On()
             }
@@ -741,11 +748,13 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                     }
                 }
                 PM130Model.I3_PARAM -> {
-                    measuringIC = value as Float * 2
-                    val IC = String.format("%.2f", measuringIC)
-                    experiment1ManualModel!!.currentOI = IC
-                    if (measuringIC > 45) {
-                        appendMessageToLog("Ток C превышает 45А")
+                    if (!постоянное) {
+                        measuringIC = value as Float * 2
+                        val IC = String.format("%.2f", measuringIC)
+                        experiment1ManualModel!!.currentOI = IC
+                        if (measuringIC > 45) {
+                            appendMessageToLog("Ток C превышает 45А")
+                        }
                     }
                 }
             }
@@ -774,6 +783,16 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 AvemVoltmeterModel.RESPONDING_PARAM -> {
                     isAvemResponding = value as Boolean
                     Platform.runLater { deviceStateCircleAvem.fill = if (value) Color.LIME else Color.RED }
+                }
+                AvemVoltmeterModel.U_RMS_PARAM -> {
+                    if (постоянное) {
+                        measuringIC = value as Float
+                        val IC = String.format("%.4f", measuringIC)
+                        experiment1ManualModel!!.currentOI = IC
+                        if (measuringIC > 45) {
+                            appendMessageToLog("Ток C превышает 45А")
+                        }
+                    }
                 }
             }
 
