@@ -105,9 +105,7 @@ object Logging {
                                         cell.setCellValue("")
                                     }
                                 }
-                                "$101$" -> {
-                                    cell.setCellValue(protocol.type)
-                                }
+                                "\$TYPEEXPERIMENT$" -> cell.setCellValue(protocol.typeExperiment)
                                 "\$POS1$" -> cell.setCellValue(protocol.position1)
                                 "\$POS2$" -> cell.setCellValue(protocol.position2)
                                 "\$POS1NAME$" -> cell.setCellValue(String.format("/%s/", protocol.position1FullName))
@@ -127,6 +125,7 @@ object Logging {
                 }
 
             }
+            fillParameters(wb, protocol.points)
             val out = ByteArrayOutputStream()
             try {
                 wb.write(out)
@@ -141,36 +140,29 @@ object Logging {
         val sheet = wb.getSheetAt(0)
         var row: Row
         var cellStyle: XSSFCellStyle = generateStyles(wb) as XSSFCellStyle
-        var rowNum = sheet.lastRowNum - TO_DESIRED_ROW
+        var rowNum = 28
         row = sheet.createRow(rowNum)
-        var columnNum = 0
+        var columnNum = 5
         for (i in points.indices) {
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringUA)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringUB)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringUC)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringIA)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringIB)
+            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringUOut)
             columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringIC)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringTorque)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringRotation)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringF)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringS)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringP)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringEfficiency)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].trmTemperature.toDouble())
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringTime)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringCos)
-            columnNum = fillOneCell(row, columnNum, cellStyle, points[i].measuringSlip)
+            columnNum = fillOneCellForTime(row, columnNum, cellStyle, points[i].measuringTime)
             row = sheet.createRow(++rowNum)
-            columnNum = 0
+            columnNum = 5
         }
-
     }
 
     private fun fillOneCell(row: Row, columnNum: Int, cellStyle: XSSFCellStyle, points: Double): Int {
         val cell: Cell = row.createCell(columnNum)
         cell.cellStyle = cellStyle
-        cell.setCellValue(String.format("%.2f", points))
+        cell.setCellValue(points)
+        return columnNum + 1
+    }
+
+    private fun fillOneCellForTime(row: Row, columnNum: Int, cellStyle: XSSFCellStyle, time: String): Int {
+        val cell: Cell = row.createCell(columnNum)
+        cell.cellStyle = cellStyle
+        cell.setCellValue(time)
         return columnNum + 1
     }
 

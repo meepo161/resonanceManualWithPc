@@ -322,6 +322,10 @@ class MainViewController : Statable {
     private fun fillStackPairs() {
         when {
             radioResonance.isSelected -> {
+                loadDiagram.isVisible = true
+                scrollPaneTimeTorque.isVisible = true
+                buttonAdd.isVisible = true
+                buttonRemove.isVisible = true
                 for (i in 0 until currentTestItem.timesResonance.size) {
                     handleAddTriple()
                     lastTriple.first.text = currentTestItem.timesResonance[i].toString()
@@ -330,6 +334,10 @@ class MainViewController : Statable {
                 }
             }
             radioViu.isSelected -> {
+                loadDiagram.isVisible = true
+                scrollPaneTimeTorque.isVisible = true
+                buttonAdd.isVisible = true
+                buttonRemove.isVisible = true
                 for (i in 0 until currentTestItem.timesViu.size) {
                     handleAddTriple()
                     lastTriple.first.text = currentTestItem.timesViu[i].toString()
@@ -338,6 +346,10 @@ class MainViewController : Statable {
                 }
             }
             radioViuDC.isSelected -> {
+                loadDiagram.isVisible = true
+                scrollPaneTimeTorque.isVisible = true
+                buttonAdd.isVisible = true
+                buttonRemove.isVisible = true
                 for (i in 0 until currentTestItem.timesViuDC.size) {
                     handleAddTriple()
                     lastTriple.first.text = currentTestItem.timesViuDC[i].toString()
@@ -346,6 +358,19 @@ class MainViewController : Statable {
                 }
             }
             radioManualWithPC.isSelected -> {
+                loadDiagram.isVisible = false
+                scrollPaneTimeTorque.isVisible = false
+                buttonAdd.isVisible = false
+                buttonRemove.isVisible = false
+//                val seriesManual = XYChart.Series<Number, Number>()
+//                seriesManual.data.add(XYChart.Data<Number, Number>(1, 1))
+//                seriesManual.data.add(XYChart.Data<Number, Number>(1, 9))
+//                seriesManual.data.add(XYChart.Data<Number, Number>(4, 9))
+//                seriesManual.data.add(XYChart.Data<Number, Number>(5, 8))
+//                seriesManual.data.add(XYChart.Data<Number, Number>(5, 6))
+//                seriesManual.data.add(XYChart.Data<Number, Number>(4, 5))
+//                seriesManual.data.add(XYChart.Data<Number, Number>(1, 5))
+//                loadDiagram.data.addAll(seriesManual)
             }
         }
     }

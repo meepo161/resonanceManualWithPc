@@ -40,9 +40,9 @@
                                     </placeholder>
                                     <columns>
                                         <TableColumn fx:id="tableColumnU" prefWidth="75.0" text="U первичное, В" />
-                                        <TableColumn fx:id="tableColumnIOI" prefWidth="75.0" text="I первичный,  A" />
+                                        <TableColumn fx:id="tableColumnIB" prefWidth="75.0" text="I первичный,  A" />
                                         <TableColumn fx:id="tableColumnUOI" prefWidth="75.0" text="U на ОИ, В" />
-                                        <TableColumn fx:id="tableColumnIB" prefWidth="75.0" text="I на ОИ, A" />
+                                        <TableColumn fx:id="tableColumnIOI" prefWidth="75.0" text="I на ОИ, A" />
                                         <TableColumn fx:id="tableColumnResultExperiment1" prefWidth="76.0" text="Результат" />
                                     </columns>
                                     <columnResizePolicy>
@@ -56,7 +56,7 @@
                         </HBox>
                         <HBox alignment="CENTER">
                             <children>
-                                <LineChart fx:id="lineChartExperiment1" legendVisible="false" prefHeight="518.0" prefWidth="1252.0">
+                                <LineChart fx:id="lineChartExperiment1" animated="false" legendVisible="false" prefHeight="518.0" prefWidth="1252.0">
                                     <xAxis>
                                         <NumberAxis label="t, сек" side="BOTTOM" tickLength="0.0" fx:id="xAxis" />
                                     </xAxis>

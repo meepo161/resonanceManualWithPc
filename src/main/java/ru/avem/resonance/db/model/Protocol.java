@@ -3,6 +3,7 @@ package ru.avem.resonance.db.model;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import ru.avem.resonance.model.Point;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.text.SimpleDateFormat;
@@ -37,6 +38,8 @@ public class Protocol {
     @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
     private ArrayList<Double> speedViuDC = new ArrayList<>(0);
     @DatabaseField
+    private String typeExperiment;
+    @DatabaseField
     private String position1;
     @DatabaseField
     private String position1Number;
@@ -54,6 +57,9 @@ public class Protocol {
     private String date;
     @DatabaseField
     private String dayTime;
+
+    @DatabaseField(canBeNull = false, dataType = DataType.SERIALIZABLE)
+    private ArrayList<Point> points;
 
     public Protocol() {
         // ORMLite and XML binder need a no-arg constructor
@@ -260,6 +266,22 @@ public class Protocol {
 
     public void setDayTime(String dayTime) {
         this.dayTime = dayTime;
+    }
+
+    public String getTypeExperiment() {
+        return typeExperiment;
+    }
+
+    public void setTypeExperiment(String typeExperiment) {
+        this.typeExperiment = typeExperiment;
+    }
+
+    public ArrayList<Point> getPoints() {
+        return points;
+    }
+
+    public void setPoints(ArrayList<Point> points) {
+        this.points = points;
     }
 
     @Override

@@ -74,7 +74,7 @@
                         </HBox>
                         <HBox alignment="CENTER">
                             <children>
-                                <LineChart fx:id="lineChartExperiment1" legendVisible="false" prefHeight="518.0"
+                                <LineChart fx:id="lineChartExperiment1" animated="false" legendVisible="false" prefHeight="518.0"
                                            prefWidth="1252.0">
                                     <xAxis>
                                         <NumberAxis label="t, сек" side="BOTTOM" tickLength="0.0" fx:id="xAxis"/>
