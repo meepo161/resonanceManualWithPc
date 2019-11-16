@@ -23,6 +23,22 @@ public class CurrentProtection implements Observer {
     private Circle deviceStateKM6;
     @FXML
     private Circle deviceStateKM7;
+    @FXML
+    private Circle deviceStateKM8;
+    @FXML
+    private Circle deviceStateKM9;
+    @FXML
+    private Circle deviceStateKM10;
+    @FXML
+    private Circle deviceStateKM11;
+    @FXML
+    private Circle deviceStateKM12;
+    @FXML
+    private Circle deviceStateKM13;
+    @FXML
+    private Circle deviceStateKM14;
+    @FXML
+    private Circle deviceStateKM15;
 
     @Override
     public void update(Observable o, Object values) {

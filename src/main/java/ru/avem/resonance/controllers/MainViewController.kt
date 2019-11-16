@@ -16,6 +16,7 @@ import javafx.scene.layout.VBox
 import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Stage
+import javafx.stage.StageStyle
 import ru.avem.resonance.Constants
 import ru.avem.resonance.Exitappable
 import ru.avem.resonance.Main
@@ -43,13 +44,7 @@ import kotlin.math.abs
 class MainViewController : Statable {
     //region FXML
     @FXML
-    lateinit var buttonProtocolCancel: Button
-    @FXML
     lateinit var buttonProtocolNext: Button
-    @FXML
-    lateinit var buttonAdd: Button
-    @FXML
-    lateinit var buttonRemove: Button
     @FXML
     lateinit var menuBarProtocolSaveAs: MenuItem
     @FXML
@@ -57,45 +52,15 @@ class MainViewController : Statable {
     @FXML
     lateinit var root: AnchorPane
     @FXML
-    lateinit var tabPane: TabPane
-    @FXML
-    lateinit var tabProtocol: Tab
-    @FXML
-    lateinit var tabResults: Tab
-
-    @FXML
-    lateinit var radioResonance: RadioButton
-    @FXML
-    lateinit var radioViu: RadioButton
-    @FXML
-    lateinit var radioViuDC: RadioButton
-    @FXML
-    lateinit var radioManualWithPC: RadioButton
-
-    @FXML
-    lateinit var gridPaneTimeTorque: GridPane
-    @FXML
     lateinit var vBoxTime: VBox
     @FXML
     lateinit var vBoxVoltage: VBox
     @FXML
     lateinit var vBoxSpeed: VBox
     @FXML
-    lateinit var anchorPaneTimeTorque: AnchorPane
-    @FXML
-    lateinit var scrollPaneTimeTorque: ScrollPane
-    @FXML
     lateinit var comboBoxTestItem: ComboBox<TestItem>
     @FXML
     lateinit var textFieldSerialNumber: TextField
-    @FXML
-    lateinit var loadDiagram: LineChart<Number, Number>
-    @FXML
-    lateinit var tableViewResults: TableView<ResultModel>
-    @FXML
-    lateinit var columnTableDimension: TableColumn<ResultModel, String>
-    @FXML
-    lateinit var columnTableValue: TableColumn<ResultModel, String>
     @FXML
     lateinit var checkMenuItemTheme: CheckMenuItem
 
@@ -154,8 +119,6 @@ class MainViewController : Statable {
 
     private fun toInitIdleState() {
         menuBarProtocolSaveAs.isDisable = true
-        tabResults.isDisable = true
-        buttonProtocolCancel.isDisable = true
     }
 
     override fun toIdleState() {
@@ -163,30 +126,20 @@ class MainViewController : Statable {
         textFieldSerialNumber.clear()
         textFieldSerialNumber.isDisable = false
         comboBoxTestItem.isDisable = false
-        buttonProtocolCancel.text = "Очистить"
         buttonProtocolNext.text = "Создать"
-        tabPane.selectionModel.select(tabProtocol)
-        mainModel.currentProtocol = Protocol()
-        buttonProtocolCancel.isDisable = false
-        tabResults.isDisable = true
         currentState = idleState
         initData()
-        radioResonance.isSelected = true
     }
 
     override fun toWaitState() {
         comboBoxTestItem.isDisable = true
-        buttonProtocolCancel.text = "Новый"
         textFieldSerialNumber.isDisable = true
         buttonProtocolNext.text = "Далее"
         menuBarProtocolSaveAs.isDisable = false
         currentState = waitState
-        buttonProtocolCancel.isDisable = false
     }
 
     override fun toResultState() {
-        tabResults.isDisable = false
-        tabPane.selectionModel.select(tabResults)
         val currentProtocol = mainModel.currentProtocol
         currentProtocol.millis = System.currentTimeMillis()
         ProtocolRepository.insertProtocol(currentProtocol)
@@ -196,16 +149,12 @@ class MainViewController : Statable {
     }
 
     private fun initData() {
-        radioResonance.isSelected = true
         allTestItems = TestItemRepository.getAllTestItems()
         comboBoxTestItem.items.clear()
         comboBoxTestItem.selectionModel.clearSelection()
         comboBoxTestItem.items.setAll(allTestItems)
         comboBoxTestItem.selectionModel.clearSelection()
         comboBoxTestItem.selectionModel.selectFirst()
-        tableViewResults.items = resultData
-        columnTableDimension.setCellValueFactory { cellData -> cellData.value.dimensionProperty() }
-        columnTableValue.setCellValueFactory { cellData -> cellData.value.valueProperty() }
         resultData.clear()
         handleSelectTestItemExperiment()
     }
@@ -225,25 +174,6 @@ class MainViewController : Statable {
                 Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
             }
         }
-        when {
-            radioResonance.isSelected -> {
-                currentTestItem.timesResonance = times
-                currentTestItem.voltageResonance = voltages
-                currentTestItem.speedResonance = speeds
-            }
-            radioViu.isSelected -> {
-                currentTestItem.timesViu = times
-                currentTestItem.voltageViu = voltages
-                currentTestItem.speedViu = speeds
-            }
-            radioViuDC.isSelected -> {
-                currentTestItem.timesViuDC = times
-                currentTestItem.voltageViuDC = voltages
-                currentTestItem.speedViuDC = speeds
-            }
-            radioViuDC.isSelected -> {
-            }
-        }
         TestItemRepository.updateTestItem(currentTestItem)
     }
 
@@ -258,7 +188,6 @@ class MainViewController : Statable {
         vBoxTime.children.add(lastTriple.first)
         vBoxVoltage.children.add(lastTriple.second)
         vBoxSpeed.children.add(lastTriple.third)
-        anchorPaneTimeTorque.prefHeight += HEIGHT_VBOX
     }
 
     @FXML
@@ -266,7 +195,6 @@ class MainViewController : Statable {
         if (stackTriples.isNotEmpty()) {
             removeTriple()
             saveTestItemPoints()
-            createLoadDiagram()
         } else {
             Toast.makeText("Нет полей для удаления").show(Toast.ToastType.ERROR)
         }
@@ -277,7 +205,6 @@ class MainViewController : Statable {
         vBoxTime.children.remove(lastTriple.first)
         vBoxVoltage.children.remove(lastTriple.second)
         vBoxSpeed.children.remove(lastTriple.third)
-        anchorPaneTimeTorque.prefHeight -= HEIGHT_VBOX
     }
 
     private fun newTextFieldsForChart(): Triple<TextField, TextField, TextField> {
@@ -287,7 +214,6 @@ class MainViewController : Statable {
         time.maxWidth = 72.0
         time.setOnAction {
             saveTestItemPoints()
-            createLoadDiagram()
         }
 
         val voltage = TextField()
@@ -296,7 +222,6 @@ class MainViewController : Statable {
         voltage.maxWidth = 72.0
         voltage.setOnAction {
             saveTestItemPoints()
-            createLoadDiagram()
         }
 
         val speed = TextField()
@@ -305,7 +230,6 @@ class MainViewController : Statable {
         speed.maxWidth = 72.0
         speed.setOnAction {
             saveTestItemPoints()
-            createLoadDiagram()
         }
         return Triple(time, voltage, speed)
     }
@@ -314,126 +238,6 @@ class MainViewController : Statable {
     fun handleSelectTestItemExperiment() {
         mainModel.currentTestItem = comboBoxTestItem.selectionModel.selectedItem
         currentTestItem = comboBoxTestItem.selectionModel.selectedItem
-        removeData()
-        fillStackPairs()
-        createLoadDiagram()
-    }
-
-    private fun fillStackPairs() {
-        when {
-            radioResonance.isSelected -> {
-                loadDiagram.isVisible = true
-                scrollPaneTimeTorque.isVisible = true
-                buttonAdd.isVisible = true
-                buttonRemove.isVisible = true
-                for (i in 0 until currentTestItem.timesResonance.size) {
-                    handleAddTriple()
-                    lastTriple.first.text = currentTestItem.timesResonance[i].toString()
-                    lastTriple.second.text = currentTestItem.voltageResonance[i].toString()
-                    lastTriple.third.text = currentTestItem.speedResonance[i].toString()
-                }
-            }
-            radioViu.isSelected -> {
-                loadDiagram.isVisible = true
-                scrollPaneTimeTorque.isVisible = true
-                buttonAdd.isVisible = true
-                buttonRemove.isVisible = true
-                for (i in 0 until currentTestItem.timesViu.size) {
-                    handleAddTriple()
-                    lastTriple.first.text = currentTestItem.timesViu[i].toString()
-                    lastTriple.second.text = currentTestItem.voltageViu[i].toString()
-                    lastTriple.third.text = currentTestItem.speedViu[i].toString()
-                }
-            }
-            radioViuDC.isSelected -> {
-                loadDiagram.isVisible = true
-                scrollPaneTimeTorque.isVisible = true
-                buttonAdd.isVisible = true
-                buttonRemove.isVisible = true
-                for (i in 0 until currentTestItem.timesViuDC.size) {
-                    handleAddTriple()
-                    lastTriple.first.text = currentTestItem.timesViuDC[i].toString()
-                    lastTriple.second.text = currentTestItem.voltageViuDC[i].toString()
-                    lastTriple.third.text = currentTestItem.speedViuDC[i].toString()
-                }
-            }
-            radioManualWithPC.isSelected -> {
-                loadDiagram.isVisible = false
-                scrollPaneTimeTorque.isVisible = false
-                buttonAdd.isVisible = false
-                buttonRemove.isVisible = false
-//                val seriesManual = XYChart.Series<Number, Number>()
-//                seriesManual.data.add(XYChart.Data<Number, Number>(1, 1))
-//                seriesManual.data.add(XYChart.Data<Number, Number>(1, 9))
-//                seriesManual.data.add(XYChart.Data<Number, Number>(4, 9))
-//                seriesManual.data.add(XYChart.Data<Number, Number>(5, 8))
-//                seriesManual.data.add(XYChart.Data<Number, Number>(5, 6))
-//                seriesManual.data.add(XYChart.Data<Number, Number>(4, 5))
-//                seriesManual.data.add(XYChart.Data<Number, Number>(1, 5))
-//                loadDiagram.data.addAll(seriesManual)
-            }
-        }
-    }
-
-    private fun createLoadDiagram() {
-        loadDiagram.data.clear()
-        val seriesTimesAndVoltage = XYChart.Series<Number, Number>()
-        var desperateDot = 0.0
-
-        when {
-            radioResonance.isSelected -> {
-                if (currentTestItem.voltageResonance.isNotEmpty()) {
-                    seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
-                    desperateDot += abs(currentTestItem.voltageResonance[0] - 0) / currentTestItem.speedResonance[0]
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[0]))
-                    desperateDot += currentTestItem.timesResonance[0]
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[0]))
-                    for (i in 1 until currentTestItem.timesResonance.size) {
-                        desperateDot += abs((currentTestItem.voltageResonance[i] - currentTestItem.voltageResonance[i - 1]) / currentTestItem.speedResonance[i])
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[i]))
-                        desperateDot += currentTestItem.timesResonance[i]
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageResonance[i]))
-                    }
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageResonance.last() / 2, 0))
-                }
-            }
-            radioViu.isSelected -> {
-                if (currentTestItem.voltageViu.isNotEmpty()) {
-                    seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
-                    desperateDot += abs(currentTestItem.voltageViu[0] - 0) / currentTestItem.speedViu[0]
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[0]))
-                    desperateDot += currentTestItem.timesViu[0]
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[0]))
-                    for (i in 1 until currentTestItem.timesViu.size) {
-                        desperateDot += abs((currentTestItem.voltageViu[i] - currentTestItem.voltageViu[i - 1]) / currentTestItem.speedViu[i])
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[i]))
-                        desperateDot += currentTestItem.timesViu[i]
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViu[i]))
-                    }
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageViu.last() / 2, 0))
-                }
-            }
-            radioViuDC.isSelected -> {
-                if (currentTestItem.voltageViuDC.isNotEmpty()) {
-                    seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
-                    desperateDot += abs(currentTestItem.voltageViuDC[0] - 0) / currentTestItem.speedViuDC[0]
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[0]))
-                    desperateDot += currentTestItem.timesViuDC[0]
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[0]))
-                    for (i in 1 until currentTestItem.timesViuDC.size) {
-                        desperateDot += abs((currentTestItem.voltageViuDC[i] - currentTestItem.voltageViuDC[i - 1]) / currentTestItem.speedViuDC[i])
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[i]))
-                        desperateDot += currentTestItem.timesViuDC[i]
-                        seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot, currentTestItem.voltageViuDC[i]))
-                    }
-                    seriesTimesAndVoltage.data.add(XYChart.Data(desperateDot + currentTestItem.voltageViuDC.last() / 2, 0))
-                }
-            }
-            radioManualWithPC.isSelected -> {
-                seriesTimesAndVoltage.data.add(XYChart.Data(0, 0))
-            }
-        }
-        loadDiagram.data.addAll(seriesTimesAndVoltage)
     }
 
     private fun removeData() {
@@ -669,18 +473,7 @@ class MainViewController : Statable {
     }
 
     private fun startExperiment() {
-        if (radioResonance.isSelected) {
-            startExperiment("layouts/experiment1View.fxml")
-        }
-        if (radioViu.isSelected) {
-            startExperiment("layouts/experiment2View.fxml")
-        }
-        if (radioViuDC.isSelected) {
-            startExperiment("layouts/experiment3View.fxml")
-        }
-        if (radioManualWithPC.isSelected) {
-            startExperiment("layouts/experiment1ViewManual.fxml")
-        }
+        startExperiment("layouts/experiment1ViewManual.fxml")
     }
 
     private fun startExperiment(layout: String): Boolean {
@@ -696,6 +489,7 @@ class MainViewController : Statable {
             dialogStage.initOwner(PRIMARY_STAGE)
             val scene = Scene(page, Constants.Display.WIDTH.toDouble(), Constants.Display.HEIGHT.toDouble())
             dialogStage.scene = scene
+            dialogStage.initStyle(StageStyle.TRANSPARENT);
             controller = loader.getController<ExperimentController>()
             controller!!.setDialogStage(dialogStage)
 
