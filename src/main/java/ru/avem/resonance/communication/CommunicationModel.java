@@ -91,7 +91,7 @@ public class CommunicationModel extends Observable implements Observer {
                                 deviceController.read(i);
                             }
                         } else if (deviceController instanceof AvemVoltmeterController) {
-                            for (int i = 0; i <= 1; i++) {
+                            for (int i = 0; i <= 2; i++) {
                                 deviceController.read(i);
                             }
                         } else if (deviceController instanceof OwenPRController) {
@@ -460,91 +460,91 @@ public class CommunicationModel extends Observable implements Observer {
         latrController.resetAllAttempts();
     }
 
-    public void разрешениеНаЗапуск_On() {
+    public void onLaunchPermission() {
         onRegisterInTheKms(1, 1);
     }
 
-    public void короткозамыкатель_On() {
+    public void onShortCircuiter() {
         onRegisterInTheKms(2, 1);
     }
 
-    public void приемКоманды_On() {
+    public void onWaitCommand() {
         onRegisterInTheKms(3, 1);
     }
 
-    public void последовательнаяСхема_On() {
+    public void onSeriesConnection() {
         onRegisterInTheKms(4, 1);
     }
 
-    public void параллельнаяСхема_On() {
+    public void onParallelConnection() {
         onRegisterInTheKms(5, 1);
     }
 
-    public void авэм_On() {
+    public void onAvem() {
         onRegisterInTheKms(6, 1);
     }
 
-    public void звук_On() {
+    public void onSound() {
         onRegisterInTheKms(7, 1);
     }
 
-    public void таймер_On() {
+    public void onTimer() {
         onRegisterInTheKms(8, 1);
     }
 
-    public void разрешениеНаЗапуск_Off() {
+    public void launchPermissionOff() {
         offRegisterInTheKms(1, 1);
     }
 
-    public void короткозамыкатель_Off() {
+    public void offShortCircuiter() {
         offRegisterInTheKms(2, 1);
     }
 
-    public void приемКоманды_Off() {
+    public void offWaitCommand() {
         offRegisterInTheKms(3, 1);
     }
 
-    public void последовательнаяСхема_Off() {
+    public void offSeriesConnection() {
         offRegisterInTheKms(4, 1);
     }
 
-    public void параллельнаяСхема_Off() {
+    public void offParallelConnection() {
         offRegisterInTheKms(5, 1);
     }
 
-    public void авэм_Off() {
+    public void offAvem() {
         offRegisterInTheKms(6, 1);
     }
 
-    public void звук_Off() {
+    public void offSound() {
         offRegisterInTheKms(7, 1);
     }
 
-    public void таймер_Off() {
+    public void offTimer() {
         offRegisterInTheKms(8, 1);
     }
 
-    public void подсветкаТаймер_On() {
+    public void onLightTimer() {
         onRegisterInTheKms(1, 2);
     }
 
-    public void подсветкаНапряжения_On() {
+    public void onLightVoltage() {
         onRegisterInTheKms(2, 2);
     }
 
-    public void внимание_On() {
+    public void onAttention() {
         onRegisterInTheKms(3, 2);
     }
 
-    public void подсветкаТаймер_Off() {
+    public void offLightTimer() {
         offRegisterInTheKms(1, 2);
     }
 
-    public void подсветкаНапряжения_Off() {
+    public void offLightVoltage() {
         offRegisterInTheKms(2, 2);
     }
 
-    public void внимание_Off() {
+    public void offAttention() {
         offRegisterInTheKms(3, 2);
     }
 

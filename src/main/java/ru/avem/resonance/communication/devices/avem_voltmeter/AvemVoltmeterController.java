@@ -9,6 +9,7 @@ import java.util.Observer;
 public class AvemVoltmeterController implements DeviceController {
     private static final short U_AMP_REGISTER = 0;
     private static final short U_RMS_REGISTER = 2;
+    private static final short F_REGISTER = 3;
     public static final short CHANGE_SHOW_VALUE = 108;
 
     private static final int NUM_OF_WORDS_IN_REGISTER = 1;
@@ -75,6 +76,14 @@ public class AvemVoltmeterController implements DeviceController {
                         resetReadAttemptsOfAttempts();
                     }
                     break;
+                case 2:
+                    if (!getF().equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+                        read(args);
+                    } else {
+                        resetReadAttempts();
+                        resetReadAttemptsOfAttempts();
+                    }
+                    break;
             }
         } else {
             readAttemptOfAttempt--;
@@ -130,6 +139,23 @@ public class AvemVoltmeterController implements DeviceController {
             }
         }
         return statusURMS;
+    }
+
+    private ModbusController.RequestStatus getF() {
+        ByteBuffer inputBuffer = ByteBuffer.allocate(INPUT_BUFFER_SIZE);
+        ModbusController.RequestStatus statusFreq = modbusController.readInputRegisters(
+                address, F_REGISTER, NUM_OF_REGISTERS, inputBuffer);
+        if (statusFreq.equals(ModbusController.RequestStatus.FRAME_RECEIVED)) {
+            model.setReadResponding(true);
+            try {
+                model.setReadResponding(true);
+                resetReadAttempts();
+                resetReadAttemptsOfAttempts();
+                model.setFreq(inputBuffer.getFloat());
+            } catch (Exception ignored) {
+            }
+        }
+        return statusFreq;
     }
 
     @Override

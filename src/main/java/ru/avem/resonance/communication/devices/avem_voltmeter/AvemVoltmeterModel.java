@@ -7,6 +7,7 @@ public class AvemVoltmeterModel extends Observable {
     public static final int RESPONDING_PARAM = 0;
     public static final int U_AMP_PARAM = 1;
     public static final int U_RMS_PARAM = 2;
+    public static final int F_PARAM = 3;
     private int deviceID;
     private boolean readResponding;
     private boolean writeResponding;
@@ -42,6 +43,10 @@ public class AvemVoltmeterModel extends Observable {
 
     public void setURMS(float u) {
         notice(U_RMS_PARAM, u);
+    }
+
+    public void setFreq(float freq) {
+        notice(F_PARAM, freq);
     }
 
     private void notice(int param, Object value) {

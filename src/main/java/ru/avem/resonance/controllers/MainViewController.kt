@@ -1,18 +1,13 @@
 package ru.avem.resonance.controllers
 
-import com.j256.ormlite.logger.LoggerFactory
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import javafx.scene.Scene
-import javafx.scene.chart.LineChart
-import javafx.scene.chart.XYChart
 import javafx.scene.control.*
 import javafx.scene.layout.AnchorPane
-import javafx.scene.layout.GridPane
-import javafx.scene.layout.VBox
 import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Stage
@@ -35,13 +30,11 @@ import ru.avem.resonance.utils.Toast
 import ru.avem.resonance.utils.Utils
 import java.io.File
 import java.io.IOException
-import java.util.*
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
-import kotlin.collections.ArrayList
-import kotlin.math.abs
 
 class MainViewController : Statable {
+
     //region FXML
     @FXML
     lateinit var buttonProtocolNext: Button
@@ -52,18 +45,11 @@ class MainViewController : Statable {
     @FXML
     lateinit var root: AnchorPane
     @FXML
-    lateinit var vBoxTime: VBox
-    @FXML
-    lateinit var vBoxVoltage: VBox
-    @FXML
-    lateinit var vBoxSpeed: VBox
-    @FXML
     lateinit var comboBoxTestItem: ComboBox<TestItem>
     @FXML
     lateinit var textFieldSerialNumber: TextField
     @FXML
     lateinit var checkMenuItemTheme: CheckMenuItem
-
     //endregion
 
     //region vars
@@ -71,11 +57,7 @@ class MainViewController : Statable {
     private var communicationModel: CommunicationModel? = null
     private var exitappable: Exitappable? = null
     private var protocolFileChooser: FileChooser? = null
-    private var DBFileChooser: FileChooser? = null
-
-    private lateinit var lastTriple: Triple<TextField, TextField, TextField>
-    private val stackTriples: Stack<Triple<TextField, TextField, TextField>> = Stack()
-
+    private var dbFileChooser: FileChooser? = null
 
     private var allTestItems = TestItemRepository.getAllTestItems()
     var currentTestItem: TestItem = mainModel.currentTestItem
@@ -85,13 +67,7 @@ class MainViewController : Statable {
     private val waitState = WaitState(this)
     private val resultState = ResultState(this)
     private var currentState: State = idleState
-
     //endregion
-
-    companion object {
-        const val HEIGHT_VBOX: Int = 57
-        private val logger = LoggerFactory.getLogger(MainViewController::class.java)
-    }
 
     @FXML
     private fun initialize() {
@@ -109,9 +85,9 @@ class MainViewController : Statable {
         protocolFileChooser!!.initialDirectory = File(System.getProperty("user.home"))
         protocolFileChooser!!.extensionFilters.add(FileChooser.ExtensionFilter("AVEM Protocol (*.axml)", "*.axml"))
 
-        DBFileChooser = FileChooser()
-        DBFileChooser!!.initialDirectory = File(System.getProperty("user.home"))
-        DBFileChooser!!.extensionFilters.add(FileChooser.ExtensionFilter("AVEM Database (*.adb)", "*.adb"))
+        dbFileChooser = FileChooser()
+        dbFileChooser!!.initialDirectory = File(System.getProperty("user.home"))
+        dbFileChooser!!.extensionFilters.add(FileChooser.ExtensionFilter("AVEM Database (*.adb)", "*.adb"))
         checkMenuItemTheme.isSelected = false
         toIdleState()
     }
@@ -159,96 +135,10 @@ class MainViewController : Statable {
         handleSelectTestItemExperiment()
     }
 
-    private fun saveTestItemPoints() {
-        val times: ArrayList<Double> = ArrayList()
-        val voltages: ArrayList<Double> = ArrayList()
-        val speeds: ArrayList<Double> = ArrayList()
-
-        stackTriples.forEach {
-            if (!it.first.text.isNullOrEmpty() && !it.second.text.isNullOrEmpty() && !it.third.text.isNullOrEmpty() &&
-                    it.first.text.toDoubleOrNull() != null && it.second.text.toDoubleOrNull() != null && it.third.text.toDoubleOrNull() != null) {
-                times.add(it.first.text.toDouble())
-                voltages.add(it.second.text.toDouble())
-                speeds.add(it.third.text.toDouble())
-            } else {
-                Toast.makeText("Проверьте правильность введенных напряжений и времени проверки").show(Toast.ToastType.WARNING)
-            }
-        }
-        TestItemRepository.updateTestItem(currentTestItem)
-    }
-
-    @FXML
-    fun handleAddTriple() {
-        addTriple()
-    }
-
-    private fun addTriple() {
-        lastTriple = newTextFieldsForChart()
-        stackTriples.push(lastTriple)
-        vBoxTime.children.add(lastTriple.first)
-        vBoxVoltage.children.add(lastTriple.second)
-        vBoxSpeed.children.add(lastTriple.third)
-    }
-
-    @FXML
-    fun handleRemoveTriple() {
-        if (stackTriples.isNotEmpty()) {
-            removeTriple()
-            saveTestItemPoints()
-        } else {
-            Toast.makeText("Нет полей для удаления").show(Toast.ToastType.ERROR)
-        }
-    }
-
-    private fun removeTriple() {
-        lastTriple = stackTriples.pop()
-        vBoxTime.children.remove(lastTriple.first)
-        vBoxVoltage.children.remove(lastTriple.second)
-        vBoxSpeed.children.remove(lastTriple.third)
-    }
-
-    private fun newTextFieldsForChart(): Triple<TextField, TextField, TextField> {
-        val time = TextField()
-        time.isEditable = true
-        time.prefWidth = 72.0
-        time.maxWidth = 72.0
-        time.setOnAction {
-            saveTestItemPoints()
-        }
-
-        val voltage = TextField()
-        voltage.isEditable = true
-        voltage.prefWidth = 72.0
-        voltage.maxWidth = 72.0
-        voltage.setOnAction {
-            saveTestItemPoints()
-        }
-
-        val speed = TextField()
-        speed.isEditable = true
-        speed.prefWidth = 72.0
-        speed.maxWidth = 72.0
-        speed.setOnAction {
-            saveTestItemPoints()
-        }
-        return Triple(time, voltage, speed)
-    }
-
     @FXML
     fun handleSelectTestItemExperiment() {
         mainModel.currentTestItem = comboBoxTestItem.selectionModel.selectedItem
         currentTestItem = comboBoxTestItem.selectionModel.selectedItem
-    }
-
-    private fun removeData() {
-        for (i in 0 until stackTriples.size) {
-            removeTriple()
-        }
-    }
-
-    @FXML
-    private fun handleCreateNewProtocol() {
-        currentState.toIdleState()
     }
 
     @FXML
@@ -369,8 +259,8 @@ class MainViewController : Statable {
 
     @FXML
     private fun handleImportDB() {
-        DBFileChooser!!.title = "Выберите файл базы данных для импорта"
-        val file = DBFileChooser!!.showOpenDialog(PRIMARY_STAGE)
+        dbFileChooser!!.title = "Выберите файл базы данных для импорта"
+        val file = dbFileChooser!!.showOpenDialog(PRIMARY_STAGE)
         if (file != null) {
             importDBFromFile(file)
         }
@@ -388,8 +278,8 @@ class MainViewController : Statable {
 
     @FXML
     private fun handleExportDB() {
-        DBFileChooser!!.title = "Сохраните базу данных в файл"
-        var file: File? = DBFileChooser!!.showSaveDialog(PRIMARY_STAGE)
+        dbFileChooser!!.title = "Сохраните базу данных в файл"
+        var file: File? = dbFileChooser!!.showSaveDialog(PRIMARY_STAGE)
         if (file != null) {
             if (!file.path.endsWith(".adb")) {
                 file = File(file.path + ".adb")
@@ -413,7 +303,6 @@ class MainViewController : Statable {
         val loader = FXMLLoader()
         loader.location = Main::class.java.getResource("layouts/deviceStateWindow.fxml")
         val page = loader.load<Parent>()
-        val controller: DeviceStateWindowController = loader.getController()
 
         val dialogStage = Stage()
         dialogStage.title = "Состояние устройств"
@@ -453,11 +342,6 @@ class MainViewController : Statable {
     }
 
     @FXML
-    private fun handleButtonProtocolCancel() {
-        toIdleState()
-    }
-
-    @FXML
     private fun handleButtonProtocolNext() {
         if (comboBoxTestItem.selectionModel.selectedItem != null) {
             mainModel.createNewProtocol(textFieldSerialNumber.text, currentTestItem)
@@ -472,13 +356,9 @@ class MainViewController : Statable {
         toIdleState()
     }
 
-    private fun startExperiment() {
-        startExperiment("layouts/experiment1ViewManual.fxml")
-    }
-
-    private fun startExperiment(layout: String): Boolean {
+    private fun startExperiment(): Boolean {
         val loader = FXMLLoader()
-        loader.location = Main::class.java.getResource(layout)
+        loader.location = Main::class.java.getResource("layouts/experiment1ViewManual.fxml")
         var controller: ExperimentController? = null
         try {
             val page = loader.load<Parent>()
@@ -489,7 +369,7 @@ class MainViewController : Statable {
             dialogStage.initOwner(PRIMARY_STAGE)
             val scene = Scene(page, Constants.Display.WIDTH.toDouble(), Constants.Display.HEIGHT.toDouble())
             dialogStage.scene = scene
-            dialogStage.initStyle(StageStyle.TRANSPARENT);
+            dialogStage.initStyle(StageStyle.TRANSPARENT)
             controller = loader.getController<ExperimentController>()
             controller!!.setDialogStage(dialogStage)
 
@@ -508,12 +388,6 @@ class MainViewController : Statable {
 
     fun setMain(exitappable: Exitappable) {
         this.exitappable = exitappable
-    }
-
-    @FXML
-    fun handleSaveCurrentProtocol() {
-        ProtocolRepository.insertProtocol(mainModel.currentProtocol)
-        Toast.makeText("Результаты проведенных испытаний сохранены").show(Toast.ToastType.INFORMATION)
     }
 
     @FXML

@@ -10,11 +10,11 @@ public class ExperimentsHolder {
     private static final List<Experiment> experiments = new ArrayList<>();
 
     static {
-        experiments.add(new Experiment("layouts/experiment1View.fxml",
-                Constants.Experiments.EXPERIMENT1_NAME));
-
-        experiments.add(new Experiment("layouts/experiment2View.fxml",
-                Constants.Experiments.EXPERIMENT2_NAME));
+//        experiments.add(new Experiment("layouts/experiment1View.fxml",
+//                Constants.Experiments.EXPERIMENT1_NAME));
+//
+//        experiments.add(new Experiment("layouts/experiment2View.fxml",
+//                Constants.Experiments.EXPERIMENT2_NAME));
     }
 
     public static Experiment getExperimentByName(String name) {
