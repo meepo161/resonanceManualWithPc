@@ -72,6 +72,8 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
     @FXML
     lateinit var buttonCancelAll: Button
     @FXML
+    lateinit var buttonStop: Button
+    @FXML
     lateinit var buttonSaveDot: Button
     @FXML
     lateinit var root: AnchorPane
@@ -248,6 +250,11 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
     @FXML
     private fun handleExperimentCancel() {
         isExperimentRunning = false
+        buttonStop.isDisable = true
+    }
+
+    @FXML
+    private fun handleExperimentClose() {
         dialogStage!!.close()
     }
 
@@ -284,6 +291,8 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
         isModeOperatingSelected = false
         isManualNeed = false
         isTimerNeed = false
+        buttonStop.isDisable = false
+        buttonSaveDot.isDisable = false
 
         Thread {
 
@@ -403,7 +412,7 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                         measuringURMSMinute = 0f
                         time = 0.0
                     }
-                    if (time >= 60) {
+                    if (time >= 15) {
                         val coefAmp = String.format("%.4f", measuringUAMPMinute / measuringURMSMinute)
                         experiment1ManualModel!!.coefAmp = coefAmp
                         measuringUAMPMinute = 0f
@@ -468,6 +477,7 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
             isExperimentRunning = false
             Platform.runLater {
                 buttonCancelAll.isDisable = false
+                buttonSaveDot.isDisable = true
             }
         }.start()
     }
@@ -811,7 +821,7 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                     measuringURMS = (value as Float) * 1000
                     if (!dcVoltage) {
                         measuringU = value * 1000
-                        coef = (measuringU / (measuringULatr / 102)).toDouble()
+                        coef = (measuringU / (measuringULatr / 140)).toDouble()
                         val kiloAvemU = String.format("%.2f", measuringU)
                         experiment1ManualModel!!.voltage = kiloAvemU
                     }
@@ -820,7 +830,7 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                     measuringUAMP = abs((value as Float) * 1000)
                     if (dcVoltage) {
                         measuringU = abs(value * 1000)
-                        coef = (measuringU / (measuringULatr / 102)).toDouble()
+                        coef = (measuringU / (measuringULatr / 140)).toDouble()
                         val kiloAvemU = String.format("%.2f", measuringU)
                         experiment1ManualModel!!.voltage = kiloAvemU
                     }
@@ -843,8 +853,8 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                     checkLatrStatus()
                 }
                 LatrModel.U_PARAM -> {
-                    measuringULatr = (value as Float) * 102
-                    val uLatr = String.format("%.2f", measuringULatr / 102)
+                    measuringULatr = (value as Float) * 140
+                    val uLatr = String.format("%.2f", measuringULatr / 140)
                     experiment1ManualModel!!.voltageARN = uLatr
                 }
             }

@@ -158,11 +158,14 @@
                 <HBox alignment="CENTER" layoutX="10.0" layoutY="144.0" spacing="16.0">
                     <children>
                         <Button fx:id="buttonCancelAll" minHeight="-Infinity" minWidth="-Infinity"
-                                mnemonicParsing="false" onAction="#handleExperimentCancel"
-                                style="-fx-background-color: linear-gradient(#ff6f8c, #FF6F61);" text="Отменить"/>
+                                mnemonicParsing="false" onAction="#handleExperimentClose"
+                                style="-fx-background-color: linear-gradient(#6f8cff, #6F61FF);" text="В меню"/>
+                        <Button fx:id="buttonStop" layoutX="507.0" layoutY="14.0" minHeight="-Infinity"
+                                minWidth="-Infinity" mnemonicParsing="false" onAction="#handleExperimentCancel"
+                                style="-fx-background-color: linear-gradient(#ff8c6f, #FF616F);" text="Отменить"/>
                         <Button fx:id="buttonSaveDot" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false"
                                 onAction="#handleSaveDot"
-                                style="-fx-background-color: linear-gradient(#6f8cff, #6F61FF);"
+                                style="-fx-background-color: linear-gradient(#55d43d, #8ce17d);"
                                 text="Сохранить точку"/>
                     </children>
                     <padding>

@@ -217,7 +217,7 @@
                                                 text="Добавить"/>
                                         <Button layoutX="878.0" layoutY="14.0" mnemonicParsing="false"
                                                 onAction="#handleDeleteTestItem"
-                                                style="-fx-background-color: linear-gradient(#ff6f8c, #FF6F61);"
+                                                style="-fx-background-color: linear-gradient(#ff8c6f, #FF616F);"
                                                 text="Удалить"/>
                                     </children>
                                     <VBox.margin>
