@@ -489,7 +489,7 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
     }
 
     private fun fillPointData() {
-        points.add(Point(measuringU.toDouble(), measuringIC.toDouble(), String.format("%s", sdf.format(System.currentTimeMillis()))))
+        points.add(Point(String.format("%.2f", measuringU), String.format("%.2f", measuringIC), String.format("%s", sdf.format(System.currentTimeMillis()))))
         currentProtocol.points = points
     }
 
