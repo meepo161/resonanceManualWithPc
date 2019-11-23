@@ -450,11 +450,6 @@ class Experiment1ManualController : DeviceState(), ExperimentController {
                 communicationModel.offAttention()
             }
 
-            timeToSleep = 200
-            while (isExperimentRunning && (timeToSleep-- > 0) && isDevicesResponding) {
-                sleep(10)
-            }
-
             communicationModel.finalizeAllDevices()
 
             if (cause != "") {
