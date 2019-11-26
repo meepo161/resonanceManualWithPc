@@ -14,6 +14,7 @@ public interface DeviceController {
     int LATR_ID = 240;
     int DELTACP2000_ID = 91;
     int KILOAVEM_ID = 21;
+    int IPP120_ID = 10;
 
     //PM130-41; ARN-250; Delta-91;PR-4;SI8-71; Avem-11; KILOAVEM_ID = 21
 

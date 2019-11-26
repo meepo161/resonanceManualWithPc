@@ -137,8 +137,8 @@ class MainViewController : Statable {
 
     @FXML
     fun handleSelectTestItemExperiment() {
-        mainModel.currentTestItem = comboBoxTestItem.selectionModel.selectedItem
         currentTestItem = comboBoxTestItem.selectionModel.selectedItem
+        mainModel.currentTestItem = currentTestItem
     }
 
     @FXML

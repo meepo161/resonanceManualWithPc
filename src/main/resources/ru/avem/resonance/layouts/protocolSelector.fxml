@@ -40,7 +40,6 @@
                       <TableColumn fx:id="columnProtocolID" maxWidth="1.7976931348623157E308" prefWidth="118.0" resizable="false" text="№ п/п" />
                       <TableColumn fx:id="columnProtocolSerialNumber" maxWidth="1.7976931348623157E308" prefWidth="300.0" resizable="false" text="Заводской номер" />
                       <TableColumn fx:id="columnProtocolDate" maxWidth="1.7976931348623157E308" prefWidth="140.0" resizable="false" text="Дата" />
-                      <TableColumn fx:id="columnProtocolTime" maxWidth="1.7976931348623157E308" prefWidth="140.0" resizable="false" text="Время" />
                       <TableColumn fx:id="columnProtocolFullName1" maxWidth="1.7976931348623157E308" prefWidth="250.0" resizable="false" text="ФИО1" />
                       <TableColumn fx:id="columnProtocolFullName2" maxWidth="1.7976931348623157E308" prefWidth="250.0" resizable="false" text="ФИО2" />
                   </columns>
