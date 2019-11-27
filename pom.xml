@@ -16,7 +16,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>ru.avem.resonance.Main</mainClass>
+                            <mainClass>ru.avem.resonanceManual.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -36,7 +36,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>ru.avem.resonance.Main</mainClass>
+                            <mainClass>ru.avem.resonanceManual.Main</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -50,7 +50,7 @@
                 <version>8.8.3</version>
                 <configuration>
                     <vendor>avem</vendor>
-                    <mainClass>ru.avem.resonance.Main</mainClass>
+                    <mainClass>ru.avem.resonanceManual.Main</mainClass>
                     <bundler>EXE</bundler>
                 </configuration>
             </plugin>
@@ -69,7 +69,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>ru.avem.resonance.Main</mainClass>
+                    <mainClass>ru.avem.resonanceManual.Main</mainClass>
                     <cleanupDaemonThreads>false</cleanupDaemonThreads>
                 </configuration>
             </plugin>
