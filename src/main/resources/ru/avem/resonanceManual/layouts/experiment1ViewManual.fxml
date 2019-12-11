@@ -61,7 +61,7 @@
                             </placeholder>
                             <columns>
                                 <TableColumn fx:id="tableColumnF" prefWidth="75.0" text="Частота, Гц" />
-                                <TableColumn fx:id="tableColumnCoefAMP" prefWidth="75.0" text="Коэф амлитуды" />
+                                <TableColumn fx:id="tableColumnCoefAMP" prefWidth="75.0" text="Коэф амплитуды" />
                                 <TableColumn fx:id="tableColumnI1" prefWidth="75.0" text="I питания стенда, A" />
                                 <TableColumn fx:id="tableColumnResultExperiment1" prefWidth="76.0" text="Результат" />
                             </columns>
@@ -99,7 +99,7 @@
                                 </HBox>
                                 <HBox alignment="CENTER_RIGHT" layoutX="10.0" layoutY="196.0" spacing="16.0">
                                     <children>
-                                        <Label text="ЛАТР" />
+                                        <Label text="АРН" />
                                         <Circle fx:id="deviceStateCircleLatr" fill="DODGERBLUE" radius="14.0" stroke="BLACK" strokeType="INSIDE" />
                                     </children>
                                 </HBox>
@@ -123,7 +123,7 @@
                                 </HBox>
                                 <HBox alignment="CENTER_RIGHT" layoutX="10.0" layoutY="159.0" spacing="16.0">
                                     <children>
-                                        <Label text="Кило АВЭМ" />
+                                        <Label text="КВМ" />
                                         <Circle fx:id="deviceStateCircleKiloAvem" fill="DODGERBLUE" radius="14.0" stroke="BLACK" strokeType="INSIDE" />
                                     </children>
                                 </HBox>

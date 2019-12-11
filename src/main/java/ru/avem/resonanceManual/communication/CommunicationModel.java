@@ -192,6 +192,7 @@ public class CommunicationModel extends Observable implements Observer {
 
     private void resetDog() {
         owenPRController.write(RESET_DOG, 1, 1);
+        owenIPP120Controller.write((short) 520, 1, 1);
     }
 
     public void resetResPR200() {
@@ -567,10 +568,12 @@ public class CommunicationModel extends Observable implements Observer {
         owenIPP120Controller.write((short) 523, 1, value);
     }
 
-
-    public void showCurrents(float ia, float ib, float ic) {
+    public void setShowCurrent() {
         owenIPP120Controller.write((short) 519, 1, 0);
         owenIPP120Controller.write((short) 518, 1, 1);
+    }
+
+    public void showCurrents(float ia, float ib, float ic) {
         Pair<Integer, Integer> shortsIA = floatToTwoShorts(ia);
         Pair<Integer, Integer> shortsIB = floatToTwoShorts(ib);
         Pair<Integer, Integer> shortsIC = floatToTwoShorts(ic);
